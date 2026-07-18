@@ -31,6 +31,9 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Run the test suite
+npm test
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser after running `npm run dev`.
@@ -77,11 +80,32 @@ the same service functions.
 > which is fine for local/personal use. For a public deployment, proxy the
 > API through a backend so the key is never shipped to clients.
 
+## Deployment
+
+The app is a static SPA — build with `npm run build` and serve the `dist/`
+folder from any static host. Config for the two common ones is included:
+
+- **Netlify** — `netlify.toml` sets the build command, publish dir, and SPA
+  redirect. Connect the repo and deploy.
+- **Vercel** — `vercel.json` does the same. Import the repo and deploy.
+
+For live data, set `VITE_API_FOOTBALL_KEY` (and optionally
+`VITE_API_FOOTBALL_LEAGUE` / `TEAM` / `SEASON` / `CACHE_MINUTES`) as an
+environment variable in the host's dashboard, then redeploy. Without it the
+deployed app shows the "connect a key" states.
+
+> **Heads-up:** `VITE_*` vars are baked into the client bundle at build time,
+> so a key set this way is visible to anyone who loads the site. For a public
+> deployment, front the API with a small backend/serverless proxy that holds
+> the key server-side instead.
+
 ## Tech Stack
 
 - [React 19](https://react.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Vite](https://vite.dev/)
+- [Vitest](https://vitest.dev/) for unit tests
+- [API-Football](https://www.api-football.com/) for live data
 
 ## Project Structure
 
