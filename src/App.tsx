@@ -17,10 +17,11 @@ import {
   fetchStandings,
   fetchRecentResults,
   fetchPlayers,
+  fetchUpcomingFixtures,
 } from './services/football'
 import {
   stats,
-  upcomingFixtures,
+  upcomingFixtures as sampleFixtures,
   standings as sampleStandings,
   recentMatches as sampleRecentMatches,
   players as samplePlayers,
@@ -61,10 +62,6 @@ interface AnalyzerMatch {
 
 function App() {
   const [activeNav, setActiveNav] = useState('dashboard')
-  const [fixtures, setFixtures] = useLocalStorage<Fixture[]>(
-    'football-app.fixtures',
-    upcomingFixtures,
-  )
   const [showNewMatch, setShowNewMatch] = useState(false)
   const [analyzerMatch, setAnalyzerMatch] = useState<AnalyzerMatch | null>(null)
   const page = pageTitles[activeNav] ?? pageTitles.dashboard
@@ -73,21 +70,42 @@ function App() {
   const standingsFeed = useLiveData(fetchStandings, sampleStandings)
   const resultsFeed = useLiveData(fetchRecentResults, sampleRecentMatches)
   const playersFeed = useLiveData(fetchPlayers, samplePlayers)
+  const fixturesFeed = useLiveData(fetchUpcomingFixtures, sampleFixtures)
   const standings = standingsFeed.data
   const recentMatches = resultsFeed.data
   const players = playersFeed.data
   const feedsLoading =
-    standingsFeed.loading || resultsFeed.loading || playersFeed.loading
+    standingsFeed.loading ||
+    resultsFeed.loading ||
+    playersFeed.loading ||
+    fixturesFeed.loading
+
+  // The fixtures list layers user-added matches on top of the live/sample
+  // feed, with user-removed ids filtered out. Both edits persist locally.
+  const [userFixtures, setUserFixtures] = useLocalStorage<Fixture[]>(
+    'football-app.userFixtures',
+    [],
+  )
+  const [removedFixtureIds, setRemovedFixtureIds] = useLocalStorage<number[]>(
+    'football-app.removedFixtures',
+    [],
+  )
+  const fixtures = [...userFixtures, ...fixturesFeed.data].filter(
+    (f) => !removedFixtureIds.includes(f.id),
+  )
 
   const addMatch = (data: Omit<Fixture, 'id'>) => {
-    const id = fixtures.reduce((max, f) => Math.max(max, f.id), 0) + 1
-    setFixtures((prev) => [{ id, ...data }, ...prev])
+    // Timestamp id keeps user matches from colliding with feed/sample ids.
+    setUserFixtures((prev) => [{ id: Date.now(), ...data }, ...prev])
     setShowNewMatch(false)
     setActiveNav('fixtures')
   }
 
   const removeFixture = (id: number) => {
-    setFixtures((prev) => prev.filter((f) => f.id !== id))
+    setUserFixtures((prev) => prev.filter((f) => f.id !== id))
+    setRemovedFixtureIds((prev) =>
+      prev.includes(id) ? prev : [...prev, id],
+    )
   }
 
   const analyzeFixture = (fixture: Fixture) => {

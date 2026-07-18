@@ -1,5 +1,5 @@
 import { apiConfig } from './config'
-import { apiFootball } from './apiFootball'
+import { apiFootball, apiFootballPaged } from './apiFootball'
 import type {
   ApiFixtureEntry,
   ApiPlayerEntry,
@@ -103,7 +103,7 @@ export async function fetchRecentResults(count = 6): Promise<Match[]> {
 
 // ── Squad / player stats ────────────────────────────────────────────
 export async function fetchPlayers(): Promise<Player[]> {
-  const res = await apiFootball<ApiPlayerEntry>('players', { team, season })
+  const res = await apiFootballPaged<ApiPlayerEntry>('players', { team, season })
   return res.map((entry, i) => {
     const stat = entry.statistics?.[0]
     const rating = Number.parseFloat(stat?.games?.rating ?? '')
