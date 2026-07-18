@@ -3,13 +3,31 @@ interface HeaderProps {
   subtitle: string
   onExport: () => void
   onNewMatch: () => void
+  isLive: boolean
+  loading: boolean
 }
 
-export function Header({ title, subtitle, onExport, onNewMatch }: HeaderProps) {
+export function Header({
+  title,
+  subtitle,
+  onExport,
+  onNewMatch,
+  isLive,
+  loading,
+}: HeaderProps) {
+  const status = loading ? 'syncing' : isLive ? 'live' : 'sample'
+  const label = loading ? 'Syncing…' : isLive ? 'Live data' : 'Sample data'
+
   return (
     <header className="dashboard-header">
       <div>
-        <h2>{title}</h2>
+        <div className="header-title-row">
+          <h2>{title}</h2>
+          <span className={`data-badge data-badge-${status}`} title={label}>
+            <span className="data-dot" />
+            {label}
+          </span>
+        </div>
         <p>{subtitle}</p>
       </div>
       <div className="header-actions">

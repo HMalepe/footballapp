@@ -35,6 +35,39 @@ npm run preview
 
 Open [http://localhost:5173](http://localhost:5173) in your browser after running `npm run dev`.
 
+## Live Data (optional)
+
+The app ships with sample data and works out of the box. To pull **live**
+standings, results, and player stats, add an
+[API-Football](https://rapidapi.com/api-sports/api/api-football) key
+(free tier available):
+
+```bash
+cp .env.example .env.local
+# then edit .env.local and set VITE_API_FOOTBALL_KEY
+```
+
+Configure which league / team / season the feeds target with
+`VITE_API_FOOTBALL_LEAGUE`, `VITE_API_FOOTBALL_TEAM`, and
+`VITE_API_FOOTBALL_SEASON` (defaults: Premier League, Arsenal, 2025/26).
+
+How it works:
+
+- **No key** → every feed falls back to bundled sample data; the header shows
+  a "Sample data" badge.
+- **With a key** → Standings, Players/Stats, and Recent Results load live from
+  API-Football; the header shows a "Live data" badge. Any request failure
+  falls back to sample data silently.
+
+The data layer lives in `src/services/` (typed client, endpoint mappers) and
+`src/hooks/useLiveData.ts` (fetch-with-fallback hook). It's structured so a
+second provider — e.g. [football-data.org](https://www.football-data.org/) —
+can be slotted in behind the same service functions.
+
+> **Security note:** Vite exposes `VITE_*` variables to the browser bundle,
+> which is fine for local/personal use. For a public deployment, proxy the
+> API through a backend so the key is never shipped to clients.
+
 ## Tech Stack
 
 - [React 19](https://react.dev/)

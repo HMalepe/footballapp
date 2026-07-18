@@ -11,12 +11,19 @@ import { StatsPage } from './components/StatsPage'
 import { NewMatchModal } from './components/NewMatchModal'
 import { downloadCsv } from './utils/csv'
 import { useLocalStorage } from './utils/useLocalStorage'
+import { useLiveData } from './hooks/useLiveData'
+import { isLiveEnabled } from './services/config'
+import {
+  fetchStandings,
+  fetchRecentResults,
+  fetchPlayers,
+} from './services/football'
 import {
   stats,
   upcomingFixtures,
-  standings,
-  recentMatches,
-  players,
+  standings as sampleStandings,
+  recentMatches as sampleRecentMatches,
+  players as samplePlayers,
   type Fixture,
 } from './data/mockData'
 
@@ -61,6 +68,16 @@ function App() {
   const [showNewMatch, setShowNewMatch] = useState(false)
   const [analyzerMatch, setAnalyzerMatch] = useState<AnalyzerMatch | null>(null)
   const page = pageTitles[activeNav] ?? pageTitles.dashboard
+
+  // Live feeds — each falls back to bundled sample data when no key is set.
+  const standingsFeed = useLiveData(fetchStandings, sampleStandings)
+  const resultsFeed = useLiveData(fetchRecentResults, sampleRecentMatches)
+  const playersFeed = useLiveData(fetchPlayers, samplePlayers)
+  const standings = standingsFeed.data
+  const recentMatches = resultsFeed.data
+  const players = playersFeed.data
+  const feedsLoading =
+    standingsFeed.loading || resultsFeed.loading || playersFeed.loading
 
   const addMatch = (data: Omit<Fixture, 'id'>) => {
     const id = fixtures.reduce((max, f) => Math.max(max, f.id), 0) + 1
@@ -196,6 +213,8 @@ function App() {
           subtitle={page.subtitle}
           onExport={handleExport}
           onNewMatch={() => setShowNewMatch(true)}
+          isLive={isLiveEnabled()}
+          loading={feedsLoading}
         />
         {renderPage()}
       </main>
