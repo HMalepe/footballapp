@@ -1,17 +1,20 @@
-import type { Match } from '../data/mockData'
+import type { Match } from '../data/types'
 
 interface RecentMatchesProps {
   matches: Match[]
+  onViewAll?: () => void
 }
 
-export function RecentMatches({ matches }: RecentMatchesProps) {
+export function RecentMatches({ matches, onViewAll }: RecentMatchesProps) {
   return (
     <section className="panel">
       <div className="panel-header">
         <h3>Recent Results</h3>
-        <a href="#" className="panel-link">
-          View all
-        </a>
+        {onViewAll && (
+          <button type="button" className="panel-link" onClick={onViewAll}>
+            View all
+          </button>
+        )}
       </div>
       <ul className="results-list">
         {matches.map((match) => (

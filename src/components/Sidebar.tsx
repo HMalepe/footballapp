@@ -1,4 +1,4 @@
-import { navItems } from '../data/mockData'
+import { navItems } from '../data/nav'
 
 interface SidebarProps {
   activeItem: string

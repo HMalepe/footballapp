@@ -1,17 +1,20 @@
-import type { Standing } from '../data/mockData'
+import type { Standing } from '../data/types'
 
 interface LeagueTableProps {
   standings: Standing[]
+  onViewAll?: () => void
 }
 
-export function LeagueTable({ standings }: LeagueTableProps) {
+export function LeagueTable({ standings, onViewAll }: LeagueTableProps) {
   return (
     <section className="panel">
       <div className="panel-header">
         <h3>League Standings</h3>
-        <a href="#" className="panel-link">
-          Full table
-        </a>
+        {onViewAll && (
+          <button type="button" className="panel-link" onClick={onViewAll}>
+            Full table
+          </button>
+        )}
       </div>
       <div className="table-wrap">
         <table className="standings-table">
