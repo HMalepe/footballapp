@@ -3,6 +3,7 @@ interface HeaderProps {
   subtitle: string
   onExport: () => void
   onNewMatch: () => void
+  onRefresh: () => void
   configured: boolean
   loading: boolean
 }
@@ -12,6 +13,7 @@ export function Header({
   subtitle,
   onExport,
   onNewMatch,
+  onRefresh,
   configured,
   loading,
 }: HeaderProps) {
@@ -31,6 +33,18 @@ export function Header({
         <p>{subtitle}</p>
       </div>
       <div className="header-actions">
+        {configured && (
+          <button
+            type="button"
+            className="btn-icon"
+            onClick={onRefresh}
+            title="Refresh live data"
+            aria-label="Refresh live data"
+            disabled={loading}
+          >
+            ↻
+          </button>
+        )}
         <button type="button" className="btn-secondary" onClick={onExport}>
           Export
         </button>

@@ -18,6 +18,9 @@ export const apiConfig = {
   league: intOr(env.VITE_API_FOOTBALL_LEAGUE, 39), // Premier League
   team: intOr(env.VITE_API_FOOTBALL_TEAM, 42), // Arsenal
   season: intOr(env.VITE_API_FOOTBALL_SEASON, 2025),
+  // How long cached responses stay fresh (default 15 min) — protects the
+  // free-tier request quota across reloads and navigation.
+  cacheTtlMs: intOr(env.VITE_API_FOOTBALL_CACHE_MINUTES, 15) * 60_000,
 } as const
 
 // True when a key is configured and live requests should be attempted.

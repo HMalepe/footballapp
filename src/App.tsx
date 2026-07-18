@@ -14,6 +14,7 @@ import { downloadCsv } from './utils/csv'
 import { useLocalStorage } from './utils/useLocalStorage'
 import { useLiveData } from './hooks/useLiveData'
 import { isLiveEnabled } from './services/config'
+import { clearApiCache } from './services/cache'
 import {
   fetchTeamStats,
   fetchStandings,
@@ -264,6 +265,10 @@ function App() {
           subtitle={page.subtitle}
           onExport={handleExport}
           onNewMatch={() => setShowNewMatch(true)}
+          onRefresh={() => {
+            clearApiCache()
+            window.location.reload()
+          }}
           configured={isLiveEnabled()}
           loading={feedsLoading}
         />

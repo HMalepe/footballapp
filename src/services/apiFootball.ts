@@ -1,4 +1,5 @@
 import { apiConfig, isLiveEnabled } from './config'
+import { cached } from './cache'
 
 type Params = Record<string, string | number>
 
@@ -27,37 +28,40 @@ async function request<T>(path: string, params: Params): Promise<ApiBody<T>> {
   )
   const url = `${apiConfig.baseUrl}/${path}?${query}`
 
-  let res: Response
-  try {
-    res = await fetch(url, {
-      headers: {
-        'x-rapidapi-key': apiConfig.key,
-        'x-rapidapi-host': apiConfig.host,
-      },
-    })
-  } catch (e) {
-    throw new ApiFootballError(
-      `Network error contacting API-Football: ${(e as Error).message}`,
-    )
-  }
+  // Cache keyed by URL — repeat/duplicate requests are served without a call.
+  return cached<ApiBody<T>>(url, apiConfig.cacheTtlMs, async () => {
+    let res: Response
+    try {
+      res = await fetch(url, {
+        headers: {
+          'x-rapidapi-key': apiConfig.key,
+          'x-rapidapi-host': apiConfig.host,
+        },
+      })
+    } catch (e) {
+      throw new ApiFootballError(
+        `Network error contacting API-Football: ${(e as Error).message}`,
+      )
+    }
 
-  if (!res.ok) {
-    throw new ApiFootballError(`API-Football responded ${res.status}`)
-  }
+    if (!res.ok) {
+      throw new ApiFootballError(`API-Football responded ${res.status}`)
+    }
 
-  const body = (await res.json().catch(() => null)) as ApiBody<T> | null
-  if (!body) {
-    throw new ApiFootballError('Malformed response from API-Football')
-  }
+    const body = (await res.json().catch(() => null)) as ApiBody<T> | null
+    if (!body) {
+      throw new ApiFootballError('Malformed response from API-Football')
+    }
 
-  // API-Football reports auth/quota problems in an `errors` object with a 200.
-  const errs = body.errors
-  const hasErrors = Array.isArray(errs) ? errs.length > 0 : Object.keys(errs ?? {}).length > 0
-  if (hasErrors) {
-    throw new ApiFootballError(`API-Football error: ${JSON.stringify(errs)}`)
-  }
+    // API-Football reports auth/quota problems in an `errors` object with a 200.
+    const errs = body.errors
+    const hasErrors = Array.isArray(errs) ? errs.length > 0 : Object.keys(errs ?? {}).length > 0
+    if (hasErrors) {
+      throw new ApiFootballError(`API-Football error: ${JSON.stringify(errs)}`)
+    }
 
-  return body
+    return body
+  })
 }
 
 // Fetch a single page's `response` array.

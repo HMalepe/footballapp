@@ -58,6 +58,11 @@ How it works:
   and upcoming Fixtures load live; the header shows a "Live data" badge. A
   failed request shows an inline error state rather than fake data.
 
+Responses are cached (in memory + `localStorage`, default 15 min — tune with
+`VITE_API_FOOTBALL_CACHE_MINUTES`) and concurrent identical requests are
+deduped, so reloads and navigation don't burn through the free-tier quota. The
+header's ↻ button clears the cache and refetches.
+
 The Match Analyzer is a formation tool and works without a key; a key just
 populates its team-name suggestions from the live standings. Fixtures you add
 yourself are stored locally and layer on top of the live feed.
