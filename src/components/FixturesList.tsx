@@ -2,16 +2,19 @@ import type { Fixture } from '../data/mockData'
 
 interface FixturesListProps {
   fixtures: Fixture[]
+  onViewAll?: () => void
 }
 
-export function FixturesList({ fixtures }: FixturesListProps) {
+export function FixturesList({ fixtures, onViewAll }: FixturesListProps) {
   return (
     <section className="panel">
       <div className="panel-header">
         <h3>Upcoming Fixtures</h3>
-        <a href="#" className="panel-link">
-          View all
-        </a>
+        {onViewAll && (
+          <button type="button" className="panel-link" onClick={onViewAll}>
+            View all
+          </button>
+        )}
       </div>
       <ul className="fixtures-list">
         {fixtures.map((fixture) => (
