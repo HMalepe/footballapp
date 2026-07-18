@@ -676,6 +676,57 @@ a:hover {
   border-color: var(--accent-glow);
 }
 
+/* ── Scope switcher ── */
+.scope-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.scope-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.scope-field span {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.scope-field select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.scope-field select:focus {
+  outline: none;
+  border-color: var(--accent-glow);
+}
+
+.scope-field select:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* ── Live-feed placeholder states ── */
 .feed-state {
   display: flex;

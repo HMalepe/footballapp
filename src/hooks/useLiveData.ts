@@ -12,7 +12,10 @@ export interface Feed<T> {
 // Fetches live data from the API. There is no sample-data fallback: until a
 // key is set and a request succeeds, `data` is null and the UI renders the
 // appropriate loading / not-configured / error / empty placeholder.
-export function useLiveData<T>(fetcher: () => Promise<T>): Feed<T> {
+//
+// `depsKey` re-runs the fetch whenever it changes (e.g. when the selected
+// league/team/season scope changes).
+export function useLiveData<T>(fetcher: () => Promise<T>, depsKey = ''): Feed<T> {
   const configured = isLiveEnabled()
   const [state, setState] = useState<Omit<Feed<T>, 'configured'>>({
     data: null,
@@ -37,9 +40,9 @@ export function useLiveData<T>(fetcher: () => Promise<T>): Feed<T> {
     return () => {
       cancelled = true
     }
-    // fetcher is expected to be a stable module-level function.
+    // fetcher is recreated per render; depsKey controls when we refetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [configured, depsKey])
 
   return { ...state, configured }
 }

@@ -20,6 +20,7 @@ export interface Fixture {
 export interface Standing {
   rank: number
   team: string
+  teamId: number
   played: number
   won: number
   drawn: number
@@ -49,4 +50,11 @@ export interface Player {
   goals: number
   assists: number
   rating: number
+}
+
+// Which competition/team/season the live feeds target.
+export interface Scope {
+  league: number
+  season: number
+  team: number
 }

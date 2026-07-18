@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { Header } from './components/Header'
 import { StatCard } from './components/StatCard'
@@ -10,10 +10,11 @@ import { PlayersList } from './components/PlayersList'
 import { StatsPage } from './components/StatsPage'
 import { NewMatchModal } from './components/NewMatchModal'
 import { FeedState } from './components/FeedState'
+import { ScopeBar } from './components/ScopeBar'
 import { downloadCsv } from './utils/csv'
 import { useLocalStorage } from './utils/useLocalStorage'
 import { useLiveData } from './hooks/useLiveData'
-import { isLiveEnabled } from './services/config'
+import { apiConfig, isLiveEnabled } from './services/config'
 import { clearApiCache } from './services/cache'
 import {
   fetchTeamStats,
@@ -22,7 +23,7 @@ import {
   fetchPlayers,
   fetchUpcomingFixtures,
 } from './services/football'
-import type { Fixture } from './data/types'
+import type { Fixture, Scope } from './data/types'
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
   dashboard: {
@@ -62,12 +63,32 @@ function App() {
   const [analyzerMatch, setAnalyzerMatch] = useState<AnalyzerMatch | null>(null)
   const page = pageTitles[activeNav] ?? pageTitles.dashboard
 
-  // Live feeds — real API data only, no sample fallback.
-  const statsFeed = useLiveData(fetchTeamStats)
-  const standingsFeed = useLiveData(fetchStandings)
-  const resultsFeed = useLiveData(fetchRecentResults)
-  const playersFeed = useLiveData(fetchPlayers)
-  const fixturesFeed = useLiveData(fetchUpcomingFixtures)
+  // Selected competition / team / season for the live feeds.
+  const [scope, setScope] = useLocalStorage<Scope>('football-app.scope', {
+    league: apiConfig.league,
+    season: apiConfig.season,
+    team: apiConfig.team,
+  })
+  const leagueKey = `${scope.league}-${scope.season}`
+  const teamKey = `${scope.team}-${scope.season}`
+
+  // Live feeds — real API data only, no sample fallback. Each refetches when
+  // the part of the scope it depends on changes.
+  const statsFeed = useLiveData(() => fetchTeamStats(scope), `${scope.league}-${teamKey}`)
+  const standingsFeed = useLiveData(() => fetchStandings(scope), leagueKey)
+  const resultsFeed = useLiveData(() => fetchRecentResults(scope), leagueKey)
+  const playersFeed = useLiveData(() => fetchPlayers(scope), teamKey)
+  const fixturesFeed = useLiveData(() => fetchUpcomingFixtures(scope), leagueKey)
+
+  // When the league changes, snap the selected team to one that exists in the
+  // new standings so the Players/Stats feeds stay coherent.
+  useEffect(() => {
+    const teams = standingsFeed.data
+    if (teams && teams.length && !teams.some((t) => t.teamId === scope.team)) {
+      setScope((s) => ({ ...s, team: teams[0].teamId }))
+    }
+  }, [standingsFeed.data, scope.team, setScope])
+
   const feedsLoading =
     statsFeed.loading ||
     standingsFeed.loading ||
@@ -271,6 +292,12 @@ function App() {
           }}
           configured={isLiveEnabled()}
           loading={feedsLoading}
+        />
+        <ScopeBar
+          scope={scope}
+          onChange={setScope}
+          teams={standingsFeed.data ?? []}
+          teamsLoading={standingsFeed.loading}
         />
         {renderPage()}
       </main>

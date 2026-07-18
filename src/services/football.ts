@@ -1,4 +1,3 @@
-import { apiConfig } from './config'
 import { apiFootball, apiFootballObject, apiFootballPaged } from './apiFootball'
 import type {
   ApiFixtureEntry,
@@ -12,11 +11,10 @@ import type {
   Match,
   Player,
   PlayerPosition,
+  Scope,
   Standing,
   Stat,
 } from '../data/types'
-
-const { league, team, season } = apiConfig
 
 function formatDate(iso?: string): { date: string; time: string } {
   if (!iso) return { date: 'TBD', time: '--:--' }
@@ -44,7 +42,7 @@ function mapPosition(raw?: string | null): PlayerPosition {
 }
 
 // ── Team statistics → dashboard KPI cards ───────────────────────────
-export async function fetchTeamStats(): Promise<Stat[]> {
+export async function fetchTeamStats({ league, team, season }: Scope): Promise<Stat[]> {
   const s = await apiFootballObject<ApiTeamStatistics>('teams/statistics', {
     league,
     team,
@@ -75,7 +73,7 @@ export async function fetchTeamStats(): Promise<Stat[]> {
 }
 
 // ── Standings ───────────────────────────────────────────────────────
-export async function fetchStandings(): Promise<Standing[]> {
+export async function fetchStandings({ league, season }: Scope): Promise<Standing[]> {
   const res = await apiFootball<ApiStandingsResponse>('standings', {
     league,
     season,
@@ -84,6 +82,7 @@ export async function fetchStandings(): Promise<Standing[]> {
   return table.map((s) => ({
     rank: s.rank ?? 0,
     team: s.team?.name ?? 'Unknown',
+    teamId: s.team?.id ?? 0,
     played: s.all?.played ?? 0,
     won: s.all?.win ?? 0,
     drawn: s.all?.draw ?? 0,
@@ -94,7 +93,10 @@ export async function fetchStandings(): Promise<Standing[]> {
 }
 
 // ── Upcoming fixtures ───────────────────────────────────────────────
-export async function fetchUpcomingFixtures(count = 8): Promise<Fixture[]> {
+export async function fetchUpcomingFixtures(
+  { league, season }: Scope,
+  count = 8,
+): Promise<Fixture[]> {
   const res = await apiFootball<ApiFixtureEntry>('fixtures', {
     league,
     season,
@@ -114,7 +116,10 @@ export async function fetchUpcomingFixtures(count = 8): Promise<Fixture[]> {
 }
 
 // ── Recent results ──────────────────────────────────────────────────
-export async function fetchRecentResults(count = 6): Promise<Match[]> {
+export async function fetchRecentResults(
+  { league, season }: Scope,
+  count = 6,
+): Promise<Match[]> {
   const res = await apiFootball<ApiFixtureEntry>('fixtures', {
     league,
     season,
@@ -135,7 +140,7 @@ export async function fetchRecentResults(count = 6): Promise<Match[]> {
 }
 
 // ── Squad / player stats ────────────────────────────────────────────
-export async function fetchPlayers(): Promise<Player[]> {
+export async function fetchPlayers({ team, season }: Scope): Promise<Player[]> {
   const res = await apiFootballPaged<ApiPlayerEntry>('players', { team, season })
   return res.map((entry, i) => {
     const stat = entry.statistics?.[0]
