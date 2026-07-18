@@ -5,6 +5,7 @@ import { StatCard } from './components/StatCard'
 import { FixturesList } from './components/FixturesList'
 import { LeagueTable } from './components/LeagueTable'
 import { RecentMatches } from './components/RecentMatches'
+import { MatchAnalyzer } from './components/MatchAnalyzer'
 import {
   stats,
   upcomingFixtures,
@@ -24,6 +25,10 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   standings: {
     title: 'Standings',
     subtitle: 'Current league table and rankings',
+  },
+  analyzer: {
+    title: 'Match Analyzer',
+    subtitle: 'Compare formations and expose tactical weaknesses',
   },
   players: {
     title: 'Players',
@@ -45,18 +50,24 @@ function App() {
       <main className="main-content">
         <Header title={page.title} subtitle={page.subtitle} />
 
-        <div className="stats-grid">
-          {stats.map((stat) => (
-            <StatCard key={stat.label} stat={stat} />
-          ))}
-        </div>
+        {activeNav === 'analyzer' ? (
+          <MatchAnalyzer />
+        ) : (
+          <>
+            <div className="stats-grid">
+              {stats.map((stat) => (
+                <StatCard key={stat.label} stat={stat} />
+              ))}
+            </div>
 
-        <div className="content-grid">
-          <FixturesList fixtures={upcomingFixtures} />
-          <LeagueTable standings={standings} />
-        </div>
+            <div className="content-grid">
+              <FixturesList fixtures={upcomingFixtures} />
+              <LeagueTable standings={standings} />
+            </div>
 
-        <RecentMatches matches={recentMatches} />
+            <RecentMatches matches={recentMatches} />
+          </>
+        )}
       </main>
     </div>
   )
