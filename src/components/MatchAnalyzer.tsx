@@ -4,12 +4,17 @@ import { FORMATION_KEYS, getFormation } from '../data/formations'
 import { standings, upcomingFixtures } from '../data/mockData'
 
 // Unique team pool drawn from the app's existing data.
-const TEAM_POOL = Array.from(
+const BASE_TEAM_POOL = Array.from(
   new Set([
     ...standings.map((s) => s.team),
     ...upcomingFixtures.flatMap((f) => [f.homeTeam, f.awayTeam]),
   ]),
 ).sort()
+
+interface MatchAnalyzerProps {
+  initialHome?: string
+  initialAway?: string
+}
 
 type Unit = 'def' | 'mid' | 'atk'
 const UNITS: { key: Unit; label: string }[] = [
@@ -25,11 +30,23 @@ interface EdgeRow {
   edge: 'home' | 'away' | 'even'
 }
 
-export function MatchAnalyzer() {
-  const [homeTeam, setHomeTeam] = useState(upcomingFixtures[0]?.homeTeam ?? 'Arsenal')
-  const [awayTeam, setAwayTeam] = useState(upcomingFixtures[0]?.awayTeam ?? 'Chelsea')
+export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) {
+  const [homeTeam, setHomeTeam] = useState(
+    initialHome ?? upcomingFixtures[0]?.homeTeam ?? 'Arsenal',
+  )
+  const [awayTeam, setAwayTeam] = useState(
+    initialAway ?? upcomingFixtures[0]?.awayTeam ?? 'Chelsea',
+  )
   const [homeFormation, setHomeFormation] = useState('4-3-3')
   const [awayFormation, setAwayFormation] = useState('4-2-3-1')
+
+  // Ensure the selected teams always exist as options, even if they came
+  // from a newly added fixture that isn't in the base pool.
+  const teamOptions = useMemo(
+    () =>
+      Array.from(new Set([...BASE_TEAM_POOL, homeTeam, awayTeam])).sort(),
+    [homeTeam, awayTeam],
+  )
 
   const analysis = useMemo(() => {
     const hs = getFormation(homeFormation).strength
@@ -74,7 +91,7 @@ export function MatchAnalyzer() {
           <label className="setup-field">
             <span>Team</span>
             <select value={homeTeam} onChange={(e) => setHomeTeam(e.target.value)}>
-              {TEAM_POOL.map((t) => (
+              {teamOptions.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
@@ -105,7 +122,7 @@ export function MatchAnalyzer() {
           <label className="setup-field">
             <span>Team</span>
             <select value={awayTeam} onChange={(e) => setAwayTeam(e.target.value)}>
-              {TEAM_POOL.map((t) => (
+              {teamOptions.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>

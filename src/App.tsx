@@ -10,6 +10,7 @@ import { PlayersList } from './components/PlayersList'
 import { StatsPage } from './components/StatsPage'
 import { NewMatchModal } from './components/NewMatchModal'
 import { downloadCsv } from './utils/csv'
+import { useLocalStorage } from './utils/useLocalStorage'
 import {
   stats,
   upcomingFixtures,
@@ -46,10 +47,19 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   },
 }
 
+interface AnalyzerMatch {
+  home: string
+  away: string
+}
+
 function App() {
   const [activeNav, setActiveNav] = useState('dashboard')
-  const [fixtures, setFixtures] = useState<Fixture[]>(upcomingFixtures)
+  const [fixtures, setFixtures] = useLocalStorage<Fixture[]>(
+    'football-app.fixtures',
+    upcomingFixtures,
+  )
   const [showNewMatch, setShowNewMatch] = useState(false)
+  const [analyzerMatch, setAnalyzerMatch] = useState<AnalyzerMatch | null>(null)
   const page = pageTitles[activeNav] ?? pageTitles.dashboard
 
   const addMatch = (data: Omit<Fixture, 'id'>) => {
@@ -57,6 +67,15 @@ function App() {
     setFixtures((prev) => [{ id, ...data }, ...prev])
     setShowNewMatch(false)
     setActiveNav('fixtures')
+  }
+
+  const removeFixture = (id: number) => {
+    setFixtures((prev) => prev.filter((f) => f.id !== id))
+  }
+
+  const analyzeFixture = (fixture: Fixture) => {
+    setAnalyzerMatch({ home: fixture.homeTeam, away: fixture.awayTeam })
+    setActiveNav('analyzer')
   }
 
   const handleExport = () => {
@@ -111,11 +130,23 @@ function App() {
   const renderPage = () => {
     switch (activeNav) {
       case 'fixtures':
-        return <FixturesList fixtures={fixtures} />
+        return (
+          <FixturesList
+            fixtures={fixtures}
+            onAnalyze={analyzeFixture}
+            onRemove={removeFixture}
+          />
+        )
       case 'standings':
         return <LeagueTable standings={standings} />
       case 'analyzer':
-        return <MatchAnalyzer />
+        return (
+          <MatchAnalyzer
+            key={analyzerMatch ? `${analyzerMatch.home}-${analyzerMatch.away}` : 'default'}
+            initialHome={analyzerMatch?.home}
+            initialAway={analyzerMatch?.away}
+          />
+        )
       case 'players':
         return <PlayersList players={players} />
       case 'stats':
@@ -139,6 +170,7 @@ function App() {
               <FixturesList
                 fixtures={fixtures}
                 onViewAll={() => setActiveNav('fixtures')}
+                onAnalyze={analyzeFixture}
               />
               <LeagueTable
                 standings={standings}

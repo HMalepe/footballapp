@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Player, PlayerPosition } from '../data/mockData'
+import { PlayerModal } from './PlayerModal'
 
 interface PlayersListProps {
   players: Player[]
@@ -17,6 +18,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 export function PlayersList({ players }: PlayersListProps) {
   const [filter, setFilter] = useState<Filter>('ALL')
+  const [selected, setSelected] = useState<Player | null>(null)
 
   const visible = players
     .filter((p) => filter === 'ALL' || p.position === filter)
@@ -39,7 +41,12 @@ export function PlayersList({ players }: PlayersListProps) {
 
       <div className="players-grid">
         {visible.map((player) => (
-          <article key={player.id} className="player-card">
+          <button
+            key={player.id}
+            type="button"
+            className="player-card"
+            onClick={() => setSelected(player)}
+          >
             <div className="player-card-top">
               <span className="player-number">{player.number}</span>
               <span className={`player-pos player-pos-${player.position.toLowerCase()}`}>
@@ -65,9 +72,13 @@ export function PlayersList({ players }: PlayersListProps) {
                 <span className="ps-label">Assists</span>
               </div>
             </div>
-          </article>
+          </button>
         ))}
       </div>
+
+      {selected && (
+        <PlayerModal player={selected} onClose={() => setSelected(null)} />
+      )}
     </div>
   )
 }

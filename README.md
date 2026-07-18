@@ -5,9 +5,16 @@ A simple football dashboard built with React, TypeScript, and Vite.
 ## Features
 
 - **Dashboard overview** — key stats at a glance (matches, goals, win rate, players)
-- **Upcoming fixtures** — scheduled matches with dates and competitions
-- **League standings** — current table with points and goal difference
-- **Recent results** — latest match scores
+- **Match Analyzer** — compare two teams' formations head-to-head on a pitch
+  diagram, with unit-strength bars, a balance verdict, and each shape's primary
+  structural weakness
+- **Fixtures** — scheduled matches; add new ones, jump straight into the
+  analyzer, or remove them (changes persist via `localStorage`)
+- **Standings** — current league table with points and goal difference
+- **Players** — squad roster with a position filter and a per-player detail
+  modal
+- **Statistics** — KPI cards plus top-scorer / top-assist leaderboards
+- **Export** — download the current page's data as a CSV
 - **Responsive layout** — works on desktop and mobile
 
 ## Getting Started
@@ -38,9 +45,10 @@ Open [http://localhost:5173](http://localhost:5173) in your browser after runnin
 
 ```
 src/
-├── components/     # UI components (Sidebar, Header, StatCard, etc.)
-├── data/           # Mock data for fixtures, standings, and stats
-├── App.tsx         # Main dashboard layout
+├── components/     # UI components (Sidebar, MatchAnalyzer, PlayersList, modals, etc.)
+├── data/           # Mock data and formation definitions
+├── utils/          # CSV export and the localStorage hook
+├── App.tsx         # App shell, routing, and shared state
 └── index.css       # Global styles
 ```
 
