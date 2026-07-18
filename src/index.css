@@ -783,6 +783,209 @@ a:hover {
   line-height: 1.5;
 }
 
+/* ── Players page ── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.filter-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-chip:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-glow);
+}
+
+.filter-chip.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.player-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.player-card:hover {
+  border-color: var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+.player-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.player-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.player-pos {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.player-pos-gk {
+  background: rgba(255, 183, 77, 0.15);
+  color: var(--warning);
+}
+
+.player-pos-def {
+  background: rgba(0, 200, 83, 0.15);
+  color: var(--accent);
+}
+
+.player-pos-mid {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+}
+
+.player-pos-fwd {
+  background: rgba(255, 82, 82, 0.15);
+  color: var(--danger);
+}
+
+.player-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.player-rating {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.rating-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.rating-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.player-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.player-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ps-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ps-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Stats page leaderboards ── */
+.leaderboard {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leader-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 90px 28px;
+  align-items: center;
+  gap: 12px;
+}
+
+.leader-rank {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.leader-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leader-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-dark);
+  overflow: hidden;
+}
+
+.leader-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.leader-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: right;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .stats-grid {
@@ -791,6 +994,16 @@ a:hover {
 
   .content-grid {
     grid-template-columns: 1fr;
+  }
+
+  .players-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .players-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -852,5 +1065,14 @@ a:hover {
 
   .weakness-grid {
     grid-template-columns: 1fr;
+  }
+
+  .players-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .leader-row {
+    grid-template-columns: 20px 1fr 60px 24px;
+    gap: 8px;
   }
 }
