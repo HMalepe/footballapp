@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Player, PlayerPosition } from '../data/mockData'
+import type { Player, PlayerPosition } from '../data/types'
 import { PlayerModal } from './PlayerModal'
 
 interface PlayersListProps {

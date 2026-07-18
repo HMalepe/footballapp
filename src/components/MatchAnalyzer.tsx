@@ -1,19 +1,12 @@
 import { useMemo, useState } from 'react'
 import { FormationPitch } from './FormationPitch'
 import { FORMATION_KEYS, getFormation } from '../data/formations'
-import { standings, upcomingFixtures } from '../data/mockData'
-
-// Unique team pool drawn from the app's existing data.
-const BASE_TEAM_POOL = Array.from(
-  new Set([
-    ...standings.map((s) => s.team),
-    ...upcomingFixtures.flatMap((f) => [f.homeTeam, f.awayTeam]),
-  ]),
-).sort()
 
 interface MatchAnalyzerProps {
   initialHome?: string
   initialAway?: string
+  // Live team names (from standings) used to populate the input suggestions.
+  teams?: string[]
 }
 
 type Unit = 'def' | 'mid' | 'atk'
@@ -30,23 +23,25 @@ interface EdgeRow {
   edge: 'home' | 'away' | 'even'
 }
 
-export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) {
-  const [homeTeam, setHomeTeam] = useState(
-    initialHome ?? upcomingFixtures[0]?.homeTeam ?? 'Arsenal',
-  )
-  const [awayTeam, setAwayTeam] = useState(
-    initialAway ?? upcomingFixtures[0]?.awayTeam ?? 'Chelsea',
-  )
+export function MatchAnalyzer({
+  initialHome,
+  initialAway,
+  teams = [],
+}: MatchAnalyzerProps) {
+  const [homeTeam, setHomeTeam] = useState(initialHome ?? teams[0] ?? '')
+  const [awayTeam, setAwayTeam] = useState(initialAway ?? teams[1] ?? '')
   const [homeFormation, setHomeFormation] = useState('4-3-3')
   const [awayFormation, setAwayFormation] = useState('4-2-3-1')
 
-  // Ensure the selected teams always exist as options, even if they came
-  // from a newly added fixture that isn't in the base pool.
+  // Suggestions for the team inputs — live teams, sorted and de-duplicated.
   const teamOptions = useMemo(
-    () =>
-      Array.from(new Set([...BASE_TEAM_POOL, homeTeam, awayTeam])).sort(),
-    [homeTeam, awayTeam],
+    () => Array.from(new Set(teams.filter(Boolean))).sort(),
+    [teams],
   )
+
+  // Fallback labels so the pitch/verdict read cleanly before names are typed.
+  const homeLabel = homeTeam.trim() || 'Home'
+  const awayLabel = awayTeam.trim() || 'Away'
 
   const analysis = useMemo(() => {
     const hs = getFormation(homeFormation).strength
@@ -63,14 +58,14 @@ export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) 
     const totalDiff = homeTotal - awayTotal
     let verdict: string
     if (totalDiff >= 3) {
-      verdict = `${homeTeam}'s ${homeFormation} holds the tactical edge on the balance of the shapes.`
+      verdict = `${homeLabel}'s ${homeFormation} holds the tactical edge on the balance of the shapes.`
     } else if (totalDiff <= -3) {
-      verdict = `${awayTeam}'s ${awayFormation} looks the better-balanced setup on paper.`
+      verdict = `${awayLabel}'s ${awayFormation} looks the better-balanced setup on paper.`
     } else {
       verdict = 'The two shapes are finely balanced — this one likely turns on individual quality.'
     }
     return { rows, homeTotal, awayTotal, verdict }
-  }, [homeFormation, awayFormation, homeTeam, awayTeam])
+  }, [homeFormation, awayFormation, homeLabel, awayLabel])
 
   const homeWeakness = getFormation(homeFormation).weakness
   const awayWeakness = getFormation(awayFormation).weakness
@@ -90,13 +85,13 @@ export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) 
           <span className="setup-tag">Home</span>
           <label className="setup-field">
             <span>Team</span>
-            <select value={homeTeam} onChange={(e) => setHomeTeam(e.target.value)}>
-              {teamOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <input
+              className="setup-input"
+              list="analyzer-team-list"
+              value={homeTeam}
+              placeholder="Team name"
+              onChange={(e) => setHomeTeam(e.target.value)}
+            />
           </label>
           <label className="setup-field">
             <span>Formation</span>
@@ -121,13 +116,13 @@ export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) 
           <span className="setup-tag setup-tag-away">Away</span>
           <label className="setup-field">
             <span>Team</span>
-            <select value={awayTeam} onChange={(e) => setAwayTeam(e.target.value)}>
-              {teamOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <input
+              className="setup-input"
+              list="analyzer-team-list"
+              value={awayTeam}
+              placeholder="Team name"
+              onChange={(e) => setAwayTeam(e.target.value)}
+            />
           </label>
           <label className="setup-field">
             <span>Formation</span>
@@ -145,6 +140,12 @@ export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) 
         </div>
       </section>
 
+      <datalist id="analyzer-team-list">
+        {teamOptions.map((t) => (
+          <option key={t} value={t} />
+        ))}
+      </datalist>
+
       {/* Pitch */}
       <section className="panel">
         <div className="panel-header">
@@ -156,8 +157,8 @@ export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) 
         <FormationPitch
           homeFormation={homeFormation}
           awayFormation={awayFormation}
-          homeTeam={homeTeam}
-          awayTeam={awayTeam}
+          homeTeam={homeLabel}
+          awayTeam={awayLabel}
         />
       </section>
 
@@ -202,14 +203,14 @@ export function MatchAnalyzer({ initialHome, initialAway }: MatchAnalyzerProps) 
         <div className="weakness-grid">
           <div className="weakness-card weakness-home">
             <span className="weakness-team">
-              {homeTeam} · {homeFormation}
+              {homeLabel} · {homeFormation}
             </span>
             <span className="weakness-title">{homeWeakness.label}</span>
             <span className="weakness-detail">{homeWeakness.detail}</span>
           </div>
           <div className="weakness-card weakness-away">
             <span className="weakness-team">
-              {awayTeam} · {awayFormation}
+              {awayLabel} · {awayFormation}
             </span>
             <span className="weakness-title">{awayWeakness.label}</span>
             <span className="weakness-detail">{awayWeakness.detail}</span>

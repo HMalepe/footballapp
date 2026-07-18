@@ -1,4 +1,4 @@
-import type { Stat } from '../data/mockData'
+import type { Stat } from '../data/types'
 
 interface StatCardProps {
   stat: Stat

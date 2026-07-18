@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Fixture } from '../data/mockData'
+import type { Fixture } from '../data/types'
 
 interface NewMatchModalProps {
   onClose: () => void

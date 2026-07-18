@@ -1,4 +1,4 @@
-import type { Fixture } from '../data/mockData'
+import type { Fixture } from '../data/types'
 
 interface FixturesListProps {
   fixtures: Fixture[]

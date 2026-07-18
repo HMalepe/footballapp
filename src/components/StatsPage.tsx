@@ -1,11 +1,13 @@
 import { StatCard } from './StatCard'
 import { RecentMatches } from './RecentMatches'
-import type { Match, Player, Stat } from '../data/mockData'
+import { FeedState } from './FeedState'
+import type { Feed } from '../hooks/useLiveData'
+import type { Match, Player, Stat } from '../data/types'
 
 interface StatsPageProps {
-  stats: Stat[]
-  players: Player[]
-  recentMatches: Match[]
+  statsFeed: Feed<Stat[]>
+  playersFeed: Feed<Player[]>
+  resultsFeed: Feed<Match[]>
 }
 
 interface LeaderProps {
@@ -42,21 +44,44 @@ function Leaderboard({ title, players, metric }: LeaderProps) {
   )
 }
 
-export function StatsPage({ stats, players, recentMatches }: StatsPageProps) {
+export function StatsPage({ statsFeed, playersFeed, resultsFeed }: StatsPageProps) {
+  const players = playersFeed.data ?? []
+
   return (
     <div className="stats-page">
-      <div className="stats-grid">
-        {stats.map((stat) => (
-          <StatCard key={stat.label} stat={stat} />
-        ))}
-      </div>
+      <FeedState
+        configured={statsFeed.configured}
+        loading={statsFeed.loading}
+        error={statsFeed.error}
+        empty={!statsFeed.data?.length}
+      >
+        <div className="stats-grid">
+          {(statsFeed.data ?? []).map((stat) => (
+            <StatCard key={stat.label} stat={stat} />
+          ))}
+        </div>
+      </FeedState>
 
-      <div className="content-grid">
-        <Leaderboard title="Top Scorers" players={players} metric={(p) => p.goals} />
-        <Leaderboard title="Top Assists" players={players} metric={(p) => p.assists} />
-      </div>
+      <FeedState
+        configured={playersFeed.configured}
+        loading={playersFeed.loading}
+        error={playersFeed.error}
+        empty={players.length === 0}
+      >
+        <div className="content-grid">
+          <Leaderboard title="Top Scorers" players={players} metric={(p) => p.goals} />
+          <Leaderboard title="Top Assists" players={players} metric={(p) => p.assists} />
+        </div>
+      </FeedState>
 
-      <RecentMatches matches={recentMatches} />
+      <FeedState
+        configured={resultsFeed.configured}
+        loading={resultsFeed.loading}
+        error={resultsFeed.error}
+        empty={!resultsFeed.data?.length}
+      >
+        <RecentMatches matches={resultsFeed.data ?? []} />
+      </FeedState>
     </div>
   )
 }

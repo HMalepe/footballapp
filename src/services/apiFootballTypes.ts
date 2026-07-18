@@ -47,6 +47,20 @@ export interface ApiStandingsResponse {
   }
 }
 
+export interface ApiTeamStatistics {
+  fixtures?: {
+    played?: { total?: number }
+    wins?: { total?: number }
+    draws?: { total?: number }
+    loses?: { total?: number }
+  }
+  goals?: {
+    for?: { total?: { total?: number } }
+    against?: { total?: { total?: number } }
+  }
+  clean_sheet?: { total?: number }
+}
+
 export interface ApiPlayerEntry {
   player?: {
     id?: number

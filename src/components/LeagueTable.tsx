@@ -1,4 +1,4 @@
-import type { Standing } from '../data/mockData'
+import type { Standing } from '../data/types'
 
 interface LeagueTableProps {
   standings: Standing[]

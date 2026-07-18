@@ -66,6 +66,15 @@ export async function apiFootball<T>(path: string, params: Params = {}): Promise
   return body.response ?? []
 }
 
+// Fetch an endpoint whose `response` is a single object (e.g. teams/statistics).
+export async function apiFootballObject<T>(
+  path: string,
+  params: Params = {},
+): Promise<T | null> {
+  const body = (await request<unknown>(path, params)) as { response?: T }
+  return body.response ?? null
+}
+
 // Fetch and concatenate every page (capped by `maxPages` to respect rate
 // limits). Used for endpoints like `players` that paginate ~20 at a time.
 export async function apiFootballPaged<T>(

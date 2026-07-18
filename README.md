@@ -35,12 +35,11 @@ npm run preview
 
 Open [http://localhost:5173](http://localhost:5173) in your browser after running `npm run dev`.
 
-## Live Data (optional)
+## Live Data (required for real content)
 
-The app ships with sample data and works out of the box. To pull **live**
-standings, results, and player stats, add an
-[API-Football](https://rapidapi.com/api-sports/api/api-football) key
-(free tier available):
+All data is pulled live from
+[API-Football](https://rapidapi.com/api-sports/api/api-football) — there is no
+bundled sample data. Add a key (free tier available) to see real content:
 
 ```bash
 cp .env.example .env.local
@@ -53,16 +52,21 @@ Configure which league / team / season the feeds target with
 
 How it works:
 
-- **No key** → every feed falls back to bundled sample data; the header shows
-  a "Sample data" badge.
-- **With a key** → Standings, Players/Stats, and Recent Results load live from
-  API-Football; the header shows a "Live data" badge. Any request failure
-  falls back to sample data silently.
+- **No key** → data views show a "connect a key" placeholder and the header
+  shows a "No API key" badge. Nothing fabricated is ever displayed.
+- **With a key** → the Dashboard KPIs, Standings, Players/Stats, Recent Results
+  and upcoming Fixtures load live; the header shows a "Live data" badge. A
+  failed request shows an inline error state rather than fake data.
+
+The Match Analyzer is a formation tool and works without a key; a key just
+populates its team-name suggestions from the live standings. Fixtures you add
+yourself are stored locally and layer on top of the live feed.
 
 The data layer lives in `src/services/` (typed client, endpoint mappers) and
-`src/hooks/useLiveData.ts` (fetch-with-fallback hook). It's structured so a
-second provider — e.g. [football-data.org](https://www.football-data.org/) —
-can be slotted in behind the same service functions.
+`src/hooks/useLiveData.ts` (fetch hook with loading/error/empty states). It's
+structured so a second provider — e.g.
+[football-data.org](https://www.football-data.org/) — can be slotted in behind
+the same service functions.
 
 > **Security note:** Vite exposes `VITE_*` variables to the browser bundle,
 > which is fine for local/personal use. For a public deployment, proxy the
@@ -79,7 +83,9 @@ can be slotted in behind the same service functions.
 ```
 src/
 ├── components/     # UI components (Sidebar, MatchAnalyzer, PlayersList, modals, etc.)
-├── data/           # Mock data and formation definitions
+├── data/           # Domain types, nav config, and formation definitions
+├── services/       # API-Football client, response types, and mappers
+├── hooks/          # useLiveData (fetch + loading/error/empty state) and others
 ├── utils/          # CSV export and the localStorage hook
 ├── App.tsx         # App shell, routing, and shared state
 └── index.css       # Global styles

@@ -1,4 +1,4 @@
-import type { Match } from '../data/mockData'
+import type { Match } from '../data/types'
 
 interface RecentMatchesProps {
   matches: Match[]

@@ -1,10 +1,11 @@
 import { apiConfig } from './config'
-import { apiFootball, apiFootballPaged } from './apiFootball'
+import { apiFootball, apiFootballObject, apiFootballPaged } from './apiFootball'
 import type {
   ApiFixtureEntry,
   ApiPlayerEntry,
   ApiStandingEntry,
   ApiStandingsResponse,
+  ApiTeamStatistics,
 } from './apiFootballTypes'
 import type {
   Fixture,
@@ -12,7 +13,8 @@ import type {
   Player,
   PlayerPosition,
   Standing,
-} from '../data/mockData'
+  Stat,
+} from '../data/types'
 
 const { league, team, season } = apiConfig
 
@@ -39,6 +41,37 @@ function mapPosition(raw?: string | null): PlayerPosition {
     default:
       return 'MID'
   }
+}
+
+// ── Team statistics → dashboard KPI cards ───────────────────────────
+export async function fetchTeamStats(): Promise<Stat[]> {
+  const s = await apiFootballObject<ApiTeamStatistics>('teams/statistics', {
+    league,
+    team,
+    season,
+  })
+  if (!s) return []
+
+  const played = s.fixtures?.played?.total ?? 0
+  const wins = s.fixtures?.wins?.total ?? 0
+  const draws = s.fixtures?.draws?.total ?? 0
+  const loses = s.fixtures?.loses?.total ?? 0
+  const goalsFor = s.goals?.for?.total?.total ?? 0
+  const cleanSheets = s.clean_sheet?.total ?? 0
+  const winPct = played > 0 ? Math.round((wins / played) * 100) : 0
+  const perGame = played > 0 ? (goalsFor / played).toFixed(1) : '0.0'
+
+  return [
+    { label: 'Matches Played', value: String(played), change: 'This season', trend: 'neutral' },
+    { label: 'Goals Scored', value: String(goalsFor), change: `Ø ${perGame} per game`, trend: 'up' },
+    {
+      label: 'Win Rate',
+      value: `${winPct}%`,
+      change: `${wins}W ${draws}D ${loses}L`,
+      trend: winPct >= 50 ? 'up' : 'down',
+    },
+    { label: 'Clean Sheets', value: String(cleanSheets), change: 'Season total', trend: 'neutral' },
+  ]
 }
 
 // ── Standings ───────────────────────────────────────────────────────

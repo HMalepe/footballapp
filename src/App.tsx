@@ -9,24 +9,19 @@ import { MatchAnalyzer } from './components/MatchAnalyzer'
 import { PlayersList } from './components/PlayersList'
 import { StatsPage } from './components/StatsPage'
 import { NewMatchModal } from './components/NewMatchModal'
+import { FeedState } from './components/FeedState'
 import { downloadCsv } from './utils/csv'
 import { useLocalStorage } from './utils/useLocalStorage'
 import { useLiveData } from './hooks/useLiveData'
 import { isLiveEnabled } from './services/config'
 import {
+  fetchTeamStats,
   fetchStandings,
   fetchRecentResults,
   fetchPlayers,
   fetchUpcomingFixtures,
 } from './services/football'
-import {
-  stats,
-  upcomingFixtures as sampleFixtures,
-  standings as sampleStandings,
-  recentMatches as sampleRecentMatches,
-  players as samplePlayers,
-  type Fixture,
-} from './data/mockData'
+import type { Fixture } from './data/types'
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
   dashboard: {
@@ -66,22 +61,21 @@ function App() {
   const [analyzerMatch, setAnalyzerMatch] = useState<AnalyzerMatch | null>(null)
   const page = pageTitles[activeNav] ?? pageTitles.dashboard
 
-  // Live feeds — each falls back to bundled sample data when no key is set.
-  const standingsFeed = useLiveData(fetchStandings, sampleStandings)
-  const resultsFeed = useLiveData(fetchRecentResults, sampleRecentMatches)
-  const playersFeed = useLiveData(fetchPlayers, samplePlayers)
-  const fixturesFeed = useLiveData(fetchUpcomingFixtures, sampleFixtures)
-  const standings = standingsFeed.data
-  const recentMatches = resultsFeed.data
-  const players = playersFeed.data
+  // Live feeds — real API data only, no sample fallback.
+  const statsFeed = useLiveData(fetchTeamStats)
+  const standingsFeed = useLiveData(fetchStandings)
+  const resultsFeed = useLiveData(fetchRecentResults)
+  const playersFeed = useLiveData(fetchPlayers)
+  const fixturesFeed = useLiveData(fetchUpcomingFixtures)
   const feedsLoading =
+    statsFeed.loading ||
     standingsFeed.loading ||
     resultsFeed.loading ||
     playersFeed.loading ||
     fixturesFeed.loading
 
-  // The fixtures list layers user-added matches on top of the live/sample
-  // feed, with user-removed ids filtered out. Both edits persist locally.
+  // Fixtures layer the user's own matches on top of the live feed, minus
+  // anything the user removed. Both edits persist to localStorage.
   const [userFixtures, setUserFixtures] = useLocalStorage<Fixture[]>(
     'football-app.userFixtures',
     [],
@@ -90,12 +84,13 @@ function App() {
     'football-app.removedFixtures',
     [],
   )
-  const fixtures = [...userFixtures, ...fixturesFeed.data].filter(
+  const fixtures = [...userFixtures, ...(fixturesFeed.data ?? [])].filter(
     (f) => !removedFixtureIds.includes(f.id),
   )
+  const teamNames = (standingsFeed.data ?? []).map((s) => s.team)
 
   const addMatch = (data: Omit<Fixture, 'id'>) => {
-    // Timestamp id keeps user matches from colliding with feed/sample ids.
+    // Timestamp id keeps user matches from colliding with feed ids.
     setUserFixtures((prev) => [{ id: Date.now(), ...data }, ...prev])
     setShowNewMatch(false)
     setActiveNav('fixtures')
@@ -103,9 +98,7 @@ function App() {
 
   const removeFixture = (id: number) => {
     setUserFixtures((prev) => prev.filter((f) => f.id !== id))
-    setRemovedFixtureIds((prev) =>
-      prev.includes(id) ? prev : [...prev, id],
-    )
+    setRemovedFixtureIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
   }
 
   const analyzeFixture = (fixture: Fixture) => {
@@ -119,7 +112,7 @@ function App() {
         downloadCsv(
           'standings',
           ['Rank', 'Team', 'P', 'W', 'D', 'L', 'GD', 'Pts'],
-          standings.map((s) => [
+          (standingsFeed.data ?? []).map((s) => [
             s.rank,
             s.team,
             s.played,
@@ -136,7 +129,7 @@ function App() {
         downloadCsv(
           'players',
           ['Number', 'Name', 'Position', 'Apps', 'Goals', 'Assists', 'Rating'],
-          players.map((p) => [
+          (playersFeed.data ?? []).map((p) => [
             p.number,
             p.name,
             p.position,
@@ -173,33 +166,59 @@ function App() {
           />
         )
       case 'standings':
-        return <LeagueTable standings={standings} />
+        return (
+          <FeedState
+            configured={standingsFeed.configured}
+            loading={standingsFeed.loading}
+            error={standingsFeed.error}
+            empty={!standingsFeed.data?.length}
+          >
+            <LeagueTable standings={standingsFeed.data ?? []} />
+          </FeedState>
+        )
       case 'analyzer':
         return (
           <MatchAnalyzer
             key={analyzerMatch ? `${analyzerMatch.home}-${analyzerMatch.away}` : 'default'}
             initialHome={analyzerMatch?.home}
             initialAway={analyzerMatch?.away}
+            teams={teamNames}
           />
         )
       case 'players':
-        return <PlayersList players={players} />
+        return (
+          <FeedState
+            configured={playersFeed.configured}
+            loading={playersFeed.loading}
+            error={playersFeed.error}
+            empty={!playersFeed.data?.length}
+          >
+            <PlayersList players={playersFeed.data ?? []} />
+          </FeedState>
+        )
       case 'stats':
         return (
           <StatsPage
-            stats={stats}
-            players={players}
-            recentMatches={recentMatches}
+            statsFeed={statsFeed}
+            playersFeed={playersFeed}
+            resultsFeed={resultsFeed}
           />
         )
       default:
         return (
           <>
-            <div className="stats-grid">
-              {stats.map((stat) => (
-                <StatCard key={stat.label} stat={stat} />
-              ))}
-            </div>
+            <FeedState
+              configured={statsFeed.configured}
+              loading={statsFeed.loading}
+              error={statsFeed.error}
+              empty={!statsFeed.data?.length}
+            >
+              <div className="stats-grid">
+                {(statsFeed.data ?? []).map((stat) => (
+                  <StatCard key={stat.label} stat={stat} />
+                ))}
+              </div>
+            </FeedState>
 
             <div className="content-grid">
               <FixturesList
@@ -207,16 +226,30 @@ function App() {
                 onViewAll={() => setActiveNav('fixtures')}
                 onAnalyze={analyzeFixture}
               />
-              <LeagueTable
-                standings={standings}
-                onViewAll={() => setActiveNav('standings')}
-              />
+              <FeedState
+                configured={standingsFeed.configured}
+                loading={standingsFeed.loading}
+                error={standingsFeed.error}
+                empty={!standingsFeed.data?.length}
+              >
+                <LeagueTable
+                  standings={standingsFeed.data ?? []}
+                  onViewAll={() => setActiveNav('standings')}
+                />
+              </FeedState>
             </div>
 
-            <RecentMatches
-              matches={recentMatches}
-              onViewAll={() => setActiveNav('stats')}
-            />
+            <FeedState
+              configured={resultsFeed.configured}
+              loading={resultsFeed.loading}
+              error={resultsFeed.error}
+              empty={!resultsFeed.data?.length}
+            >
+              <RecentMatches
+                matches={resultsFeed.data ?? []}
+                onViewAll={() => setActiveNav('stats')}
+              />
+            </FeedState>
           </>
         )
     }
@@ -231,7 +264,7 @@ function App() {
           subtitle={page.subtitle}
           onExport={handleExport}
           onNewMatch={() => setShowNewMatch(true)}
-          isLive={isLiveEnabled()}
+          configured={isLiveEnabled()}
           loading={feedsLoading}
         />
         {renderPage()}

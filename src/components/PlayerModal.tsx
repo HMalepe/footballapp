@@ -1,4 +1,4 @@
-import type { Player } from '../data/mockData'
+import type { Player } from '../data/types'
 
 interface PlayerModalProps {
   player: Player

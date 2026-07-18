@@ -3,7 +3,7 @@ interface HeaderProps {
   subtitle: string
   onExport: () => void
   onNewMatch: () => void
-  isLive: boolean
+  configured: boolean
   loading: boolean
 }
 
@@ -12,11 +12,11 @@ export function Header({
   subtitle,
   onExport,
   onNewMatch,
-  isLive,
+  configured,
   loading,
 }: HeaderProps) {
-  const status = loading ? 'syncing' : isLive ? 'live' : 'sample'
-  const label = loading ? 'Syncing…' : isLive ? 'Live data' : 'Sample data'
+  const status = !configured ? 'offline' : loading ? 'syncing' : 'live'
+  const label = !configured ? 'No API key' : loading ? 'Syncing…' : 'Live data'
 
   return (
     <header className="dashboard-header">

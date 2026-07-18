@@ -1,49 +1,37 @@
 import { useEffect, useState } from 'react'
 import { isLiveEnabled } from '../services/config'
 
-export interface LiveData<T> {
-  data: T
+export interface Feed<T> {
+  data: T | null
   loading: boolean
   error: string | null
-  // true once live API data has successfully loaded; false while on fallback.
-  isLive: boolean
+  // false when no API key is configured — the UI shows a "connect a key" state.
+  configured: boolean
 }
 
-// Runs `fetcher` when a live API key is configured, otherwise stays on
-// `fallback`. The fallback is always returned as `data`, so consumers never
-// have to handle an empty/undefined state — the UI works with or without a key.
-export function useLiveData<T>(
-  fetcher: () => Promise<T>,
-  fallback: T,
-): LiveData<T> {
-  const [state, setState] = useState<LiveData<T>>({
-    data: fallback,
-    loading: isLiveEnabled(),
+// Fetches live data from the API. There is no sample-data fallback: until a
+// key is set and a request succeeds, `data` is null and the UI renders the
+// appropriate loading / not-configured / error / empty placeholder.
+export function useLiveData<T>(fetcher: () => Promise<T>): Feed<T> {
+  const configured = isLiveEnabled()
+  const [state, setState] = useState<Omit<Feed<T>, 'configured'>>({
+    data: null,
+    loading: configured,
     error: null,
-    isLive: false,
   })
 
   useEffect(() => {
-    if (!isLiveEnabled()) return
+    if (!configured) return
 
     let cancelled = false
-    setState((s) => ({ ...s, loading: true, error: null }))
+    setState({ data: null, loading: true, error: null })
 
     fetcher()
       .then((data) => {
-        if (cancelled) return
-        // Guard against an empty live payload wiping out the UI.
-        const usable = Array.isArray(data) ? data.length > 0 : data != null
-        setState({
-          data: usable ? data : fallback,
-          loading: false,
-          error: null,
-          isLive: usable,
-        })
+        if (!cancelled) setState({ data, loading: false, error: null })
       })
       .catch((e: Error) => {
-        if (cancelled) return
-        setState({ data: fallback, loading: false, error: e.message, isLive: false })
+        if (!cancelled) setState({ data: null, loading: false, error: e.message })
       })
 
     return () => {
@@ -53,5 +41,5 @@ export function useLiveData<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return state
+  return { ...state, configured }
 }
