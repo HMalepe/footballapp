@@ -132,8 +132,8 @@ export function ContextReport({
       {/* Layers 3-4 + Trap Score — AI generated */}
       {!isAiEnabled() ? (
         <div className="ai-hint">
-          🔌 Add a Claude API key (<code>VITE_ANTHROPIC_KEY</code>) to generate the
-          human-intelligence and sentiment layers plus a Trap Score.
+          🔌 Add a Claude API key (<code>VITE_ANTHROPIC_KEY</code>) to research the
+          web for the human-intelligence and sentiment layers plus a Trap Score.
         </div>
       ) : report ? (
         <TrapReport report={report} onRegenerate={generate} loading={loading} />
@@ -145,8 +145,14 @@ export function ContextReport({
             onClick={generate}
             disabled={loading}
           >
-            {loading ? 'Analysing…' : '🧠 Generate context report'}
+            {loading ? 'Researching the web…' : '🔎 Research & build report'}
           </button>
+          {loading && (
+            <span className="ai-note">
+              Claude is searching for current team news, morale, and sentiment —
+              this can take up to a minute.
+            </span>
+          )}
           {error && <p className="ai-error">{error}</p>}
         </div>
       )}
@@ -203,16 +209,43 @@ function TrapReport({
         </div>
       )}
 
+      {report.sources.length > 0 && (
+        <div className="trap-sources">
+          <span className="ctx-label">Sources</span>
+          <div className="trap-source-links">
+            {report.sources.map((s, i) => (
+              <a
+                key={i}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={s.title}
+              >
+                [{i + 1}] {hostOf(s.url)}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         className="btn-secondary trap-regen"
         onClick={onRegenerate}
         disabled={loading}
       >
-        {loading ? 'Analysing…' : '↻ Regenerate'}
+        {loading ? 'Researching…' : '↻ Regenerate'}
       </button>
     </div>
   )
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return 'source'
+  }
 }
 
 function ordinal(n: number): string {

@@ -80,10 +80,17 @@ yourself are stored locally and layer on top of the live feed.
 
 The Analyzer's "Deeper Context" panel derives motivation/stakes (from league
 position) and injuries from live API-Football data. It can also generate the
-qualitative **human-intelligence** and **sentiment** layers plus a 1–10 **Trap
-Score** using Claude — add a key from
+qualitative **human-intelligence** (Layer 3) and **sentiment** (Layer 4) layers
+plus a 1–10 **Trap Score** using Claude — add a key from
 [console.anthropic.com](https://console.anthropic.com) as `VITE_ANTHROPIC_KEY`
 (model configurable via `VITE_ANTHROPIC_MODEL`, default `claude-opus-4-8`).
+
+Those layers are **grounded in live web search**: Claude runs the web-search
+tool to pull current team news, morale, manager pressure, contract sagas, and
+fan/media sentiment for the specific fixture, then cites its **sources** in the
+report (rather than relying on stale training knowledge). Because it uses web
+search, the configured model must support it (Opus 4.6+ / Sonnet 4.6+ — the
+`claude-opus-4-8` default does).
 
 This layer is **context/education only**: it never names a bet, never claims to
 know the result, and the Trap Score measures how much hidden context a casual

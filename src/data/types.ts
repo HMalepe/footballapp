@@ -94,10 +94,16 @@ export interface Stakes {
 // Layers 3–4 + Trap Score — produced by the LLM analysis layer. This is
 // context/education only: it estimates how much hidden context a casual
 // reader is likely missing. It is NOT a prediction or betting advice.
+export interface ReportSource {
+  title: string
+  url: string
+}
+
 export interface ContextReport {
   trapScore: number // 1–10
   classification: string
   humanIntel: string[] // Layer 3
   sentiment: string[] // Layer 4
   explanation: string
+  sources: ReportSource[] // web-search citations that grounded the analysis
 }
