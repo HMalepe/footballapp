@@ -1,5 +1,6 @@
 import { useLiveData } from '../hooks/useLiveData'
 import { FeedState } from './FeedState'
+import { ContextReport } from './ContextReport'
 import { fetchForm, fetchHeadToHead } from '../services/football'
 import type { FormGame, Match, Standing } from '../data/types'
 
@@ -7,6 +8,8 @@ interface MatchContextProps {
   home: Standing
   away: Standing
   season: number
+  leagueSize: number
+  leagueName: string
 }
 
 function FormPills({ games }: { games: FormGame[] }) {
@@ -41,7 +44,13 @@ function h2hSummary(games: Match[], homeName: string, awayName: string) {
   return { h, d, a }
 }
 
-export function MatchContext({ home, away, season }: MatchContextProps) {
+export function MatchContext({
+  home,
+  away,
+  season,
+  leagueSize,
+  leagueName,
+}: MatchContextProps) {
   const feed = useLiveData(
     () =>
       Promise.all([
@@ -54,8 +63,12 @@ export function MatchContext({ home, away, season }: MatchContextProps) {
 
   const data = feed.data
   const summary = data ? h2hSummary(data.h2h, home.team, away.team) : null
+  const h2hText = summary
+    ? `${home.team} ${summary.h}W, ${summary.d}D, ${away.team} ${summary.a}W in last ${data?.h2h.length ?? 0}`
+    : 'No previous meetings on record'
 
   return (
+    <>
     <section className="panel">
       <div className="panel-header">
         <h3>Match Context</h3>
@@ -133,5 +146,19 @@ export function MatchContext({ home, away, season }: MatchContextProps) {
         )}
       </FeedState>
     </section>
+
+    {data && (
+      <ContextReport
+        home={home}
+        away={away}
+        season={season}
+        leagueSize={leagueSize}
+        leagueName={leagueName}
+        homeForm={data.homeForm}
+        awayForm={data.awayForm}
+        h2hSummary={h2hText}
+      />
+    )}
+    </>
   )
 }

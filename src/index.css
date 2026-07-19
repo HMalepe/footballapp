@@ -802,6 +802,152 @@ a:hover {
   color: var(--text-primary);
 }
 
+/* ── Deeper Context / Trap Score ── */
+.ai-hint {
+  padding: 16px;
+  background: var(--bg-dark);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.ai-hint code {
+  background: var(--bg-card);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.ai-generate {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.ai-error,
+.trap-explanation {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ai-error {
+  color: var(--danger);
+}
+
+.trap-report {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.trap-gauge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.trap-score {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.trap-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trap-band {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.trap-scale {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.trap-low {
+  background: rgba(0, 200, 83, 0.08);
+  border-color: var(--accent-glow);
+}
+.trap-low .trap-score,
+.trap-low .trap-band {
+  color: var(--accent);
+}
+
+.trap-mod {
+  background: rgba(255, 183, 77, 0.08);
+  border-color: rgba(255, 183, 77, 0.35);
+}
+.trap-mod .trap-score,
+.trap-mod .trap-band {
+  color: var(--warning);
+}
+
+.trap-high,
+.trap-flag {
+  background: rgba(255, 82, 82, 0.08);
+  border-color: rgba(255, 82, 82, 0.4);
+}
+.trap-high .trap-score,
+.trap-high .trap-band,
+.trap-flag .trap-score,
+.trap-flag .trap-band {
+  color: var(--danger);
+}
+
+.trap-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trap-list li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding-left: 14px;
+  position: relative;
+}
+
+.trap-list li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.trap-regen {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.ctx-disclaimer {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 /* ── Scope switcher ── */
 .scope-bar {
   display: flex;

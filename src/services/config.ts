@@ -23,7 +23,19 @@ export const apiConfig = {
   cacheTtlMs: intOr(env.VITE_API_FOOTBALL_CACHE_MINUTES, 15) * 60_000,
 } as const
 
+// Anthropic (Claude) config — powers the qualitative Context Report layers.
+export const aiConfig = {
+  key: (env.VITE_ANTHROPIC_KEY ?? '').trim(),
+  model: (env.VITE_ANTHROPIC_MODEL ?? 'claude-opus-4-8').trim(),
+  baseUrl: 'https://api.anthropic.com/v1/messages',
+} as const
+
 // True when a key is configured and live requests should be attempted.
 export function isLiveEnabled(): boolean {
   return apiConfig.key.length > 0
+}
+
+// True when a Claude API key is configured (for the AI Context Report).
+export function isAiEnabled(): boolean {
+  return aiConfig.key.length > 0
 }

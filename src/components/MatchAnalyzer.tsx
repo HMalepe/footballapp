@@ -10,6 +10,7 @@ interface MatchAnalyzerProps {
   // Live standings — used for team suggestions and the Match Context panel.
   standings?: Standing[]
   season: number
+  leagueName: string
 }
 
 type Unit = 'def' | 'mid' | 'atk'
@@ -31,6 +32,7 @@ export function MatchAnalyzer({
   initialAway,
   standings = [],
   season,
+  leagueName,
 }: MatchAnalyzerProps) {
   const teams = useMemo(() => standings.map((s) => s.team), [standings])
   const [homeTeam, setHomeTeam] = useState(initialHome ?? teams[0] ?? '')
@@ -175,13 +177,15 @@ export function MatchAnalyzer({
         />
       </section>
 
-      {/* Live Layer-1 context — only when both teams resolve to the league table */}
+      {/* Live context — only when both teams resolve to the league table */}
       {homeStanding && awayStanding && (
         <MatchContext
           key={`${homeStanding.teamId}-${awayStanding.teamId}`}
           home={homeStanding}
           away={awayStanding}
           season={season}
+          leagueSize={standings.length}
+          leagueName={leagueName}
         />
       )}
 

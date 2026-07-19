@@ -15,6 +15,7 @@ import {
   fetchRecentResults,
   fetchForm,
   fetchHeadToHead,
+  fetchInjuries,
 } from './football'
 
 const scope: Scope = { league: 39, season: 2025, team: 42 }
@@ -164,6 +165,19 @@ describe('fetchHeadToHead', () => {
       h2h: '42-7',
       last: 6,
     })
+  })
+})
+
+describe('fetchInjuries', () => {
+  it('maps injury entries and caps at six', async () => {
+    vi.mocked(apiFootball).mockResolvedValue(
+      Array.from({ length: 8 }, (_, i) => ({
+        player: { name: `Player ${i}`, reason: 'Knock' },
+      })) as never,
+    )
+    const out = await fetchInjuries(42, 2025)
+    expect(out).toHaveLength(6)
+    expect(out[0]).toEqual({ player: 'Player 0', reason: 'Knock' })
   })
 })
 

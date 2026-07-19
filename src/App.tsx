@@ -23,6 +23,7 @@ import {
   fetchPlayers,
   fetchUpcomingFixtures,
 } from './services/football'
+import { LEAGUES } from './data/leagues'
 import type { Fixture, Scope } from './data/types'
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
@@ -205,6 +206,9 @@ function App() {
             initialAway={analyzerMatch?.away}
             standings={standingsFeed.data ?? []}
             season={scope.season}
+            leagueName={
+              LEAGUES.find((l) => l.id === scope.league)?.name ?? 'League'
+            }
           />
         )
       case 'players':

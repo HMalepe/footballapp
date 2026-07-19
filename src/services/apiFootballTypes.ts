@@ -66,6 +66,13 @@ export interface ApiTeamStatistics {
   clean_sheet?: { total?: number }
 }
 
+export interface ApiInjuryEntry {
+  player?: {
+    name?: string
+    reason?: string
+  }
+}
+
 export interface ApiPlayerEntry {
   player?: {
     id?: number
