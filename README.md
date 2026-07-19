@@ -7,7 +7,9 @@ A simple football dashboard built with React, TypeScript, and Vite.
 - **Dashboard overview** — key stats at a glance (matches, goals, win rate, players)
 - **Match Analyzer** — compare two teams' formations head-to-head on a pitch
   diagram, with unit-strength bars, a balance verdict, and each shape's primary
-  structural weakness
+  structural weakness. With a key it also shows live **match context** for the
+  selected teams: recent form (W/D/L), head-to-head history, and home/away
+  season records
 - **Fixtures** — scheduled matches; add new ones, jump straight into the
   analyzer, or remove them (changes persist via `localStorage`)
 - **Standings** — current league table with points and goal difference

@@ -17,6 +17,14 @@ export interface Fixture {
   competition: string
 }
 
+export interface VenueRecord {
+  won: number
+  drawn: number
+  lost: number
+  goalsFor: number
+  goalsAgainst: number
+}
+
 export interface Standing {
   rank: number
   team: string
@@ -27,6 +35,17 @@ export interface Standing {
   lost: number
   gd: number
   points: number
+  home: VenueRecord
+  away: VenueRecord
+}
+
+export type FormResult = 'W' | 'D' | 'L'
+
+export interface FormGame {
+  result: FormResult
+  opponent: string
+  score: string
+  home: boolean
 }
 
 export interface Match {

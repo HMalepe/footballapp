@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
 import { FormationPitch } from './FormationPitch'
+import { MatchContext } from './MatchContext'
 import { FORMATION_KEYS, getFormation } from '../data/formations'
+import type { Standing } from '../data/types'
 
 interface MatchAnalyzerProps {
   initialHome?: string
   initialAway?: string
-  // Live team names (from standings) used to populate the input suggestions.
-  teams?: string[]
+  // Live standings — used for team suggestions and the Match Context panel.
+  standings?: Standing[]
+  season: number
 }
 
 type Unit = 'def' | 'mid' | 'atk'
@@ -26,8 +29,10 @@ interface EdgeRow {
 export function MatchAnalyzer({
   initialHome,
   initialAway,
-  teams = [],
+  standings = [],
+  season,
 }: MatchAnalyzerProps) {
+  const teams = useMemo(() => standings.map((s) => s.team), [standings])
   const [homeTeam, setHomeTeam] = useState(initialHome ?? teams[0] ?? '')
   const [awayTeam, setAwayTeam] = useState(initialAway ?? teams[1] ?? '')
   const [homeFormation, setHomeFormation] = useState('4-3-3')
@@ -37,6 +42,14 @@ export function MatchAnalyzer({
   const teamOptions = useMemo(
     () => Array.from(new Set(teams.filter(Boolean))).sort(),
     [teams],
+  )
+
+  // Resolve the typed names to standings rows so we can pull live H2H/form.
+  const homeStanding = standings.find(
+    (s) => s.team.toLowerCase() === homeTeam.trim().toLowerCase(),
+  )
+  const awayStanding = standings.find(
+    (s) => s.team.toLowerCase() === awayTeam.trim().toLowerCase(),
   )
 
   // Fallback labels so the pitch/verdict read cleanly before names are typed.
@@ -161,6 +174,16 @@ export function MatchAnalyzer({
           awayTeam={awayLabel}
         />
       </section>
+
+      {/* Live Layer-1 context — only when both teams resolve to the league table */}
+      {homeStanding && awayStanding && (
+        <MatchContext
+          key={`${homeStanding.teamId}-${awayStanding.teamId}`}
+          home={homeStanding}
+          away={awayStanding}
+          season={season}
+        />
+      )}
 
       {/* Unit strength comparison */}
       <section className="panel">

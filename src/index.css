@@ -676,6 +676,132 @@ a:hover {
   border-color: var(--accent-glow);
 }
 
+/* ── Match Context (Layer-1 data) ── */
+.ctx-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ctx-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--bg-dark);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.ctx-block-wide {
+  grid-column: 1 / -1;
+}
+
+.ctx-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ctx-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ctx-team {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ctx-team-home {
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}
+
+.ctx-team-away {
+  border-left: 3px solid var(--danger);
+  padding-left: 8px;
+}
+
+.ctx-record {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.ctx-muted {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.form-pills {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.form-pill {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0a1a0f;
+}
+
+.form-w {
+  background: var(--accent);
+}
+
+.form-d {
+  background: var(--warning);
+}
+
+.form-l {
+  background: var(--danger);
+  color: #fff;
+}
+
+.ctx-h2h-summary {
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ctx-h2h-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ctx-h2h-item {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.ctx-h2h-date {
+  color: var(--text-muted);
+  font-size: 11px;
+  min-width: 64px;
+}
+
+.ctx-h2h-score {
+  color: var(--text-primary);
+}
+
 /* ── Scope switcher ── */
 .scope-bar {
   display: flex;

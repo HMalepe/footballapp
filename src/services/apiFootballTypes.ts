@@ -28,17 +28,22 @@ export interface ApiFixtureEntry {
   goals?: ApiGoals
 }
 
+interface ApiRecord {
+  played?: number
+  win?: number
+  draw?: number
+  lose?: number
+  goals?: { for?: number; against?: number }
+}
+
 export interface ApiStandingEntry {
   rank?: number
   team?: ApiTeamRef
   points?: number
   goalsDiff?: number
-  all?: {
-    played?: number
-    win?: number
-    draw?: number
-    lose?: number
-  }
+  all?: ApiRecord
+  home?: ApiRecord
+  away?: ApiRecord
 }
 
 export interface ApiStandingsResponse {

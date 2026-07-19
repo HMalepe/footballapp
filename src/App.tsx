@@ -109,7 +109,6 @@ function App() {
   const fixtures = [...userFixtures, ...(fixturesFeed.data ?? [])].filter(
     (f) => !removedFixtureIds.includes(f.id),
   )
-  const teamNames = (standingsFeed.data ?? []).map((s) => s.team)
 
   const addMatch = (data: Omit<Fixture, 'id'>) => {
     // Timestamp id keeps user matches from colliding with feed ids.
@@ -204,7 +203,8 @@ function App() {
             key={analyzerMatch ? `${analyzerMatch.home}-${analyzerMatch.away}` : 'default'}
             initialHome={analyzerMatch?.home}
             initialAway={analyzerMatch?.away}
-            teams={teamNames}
+            standings={standingsFeed.data ?? []}
+            season={scope.season}
           />
         )
       case 'players':
