@@ -92,6 +92,13 @@ report (rather than relying on stale training knowledge). Because it uses web
 search, the configured model must support it (Opus 4.6+ / Sonnet 4.6+ — the
 `claude-opus-4-8` default does).
 
+The panel also shows a **market odds** block (Layer 4) — the 1X2 prices for the
+fixture from API-Football, with de-vigged implied probabilities and price
+**movement since you last viewed it** (a local snapshot per fixture). Those
+numbers are also fed into the AI report so its analysis is grounded in the
+actual market, not guesswork. Odds use the same API-Football key — no extra
+provider needed.
+
 This layer is **context/education only**: it never names a bet, never claims to
 know the result, and the Trap Score measures how much hidden context a casual
 read is likely missing — not a prediction or confidence level. A

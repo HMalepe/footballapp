@@ -17,6 +17,7 @@ export interface ContextInput {
   awayStakes: string
   homeInjuries: string
   awayInjuries: string
+  odds: string
 }
 
 // The product's non-negotiable positioning: context/education, never a tip.
@@ -60,6 +61,7 @@ ${c.home} stakes: ${c.homeStakes}
 ${c.away} stakes: ${c.awayStakes}
 ${c.home} injuries (from data feed): ${c.homeInjuries}
 ${c.away} injuries (from data feed): ${c.awayInjuries}
+Market odds: ${c.odds}
 
 Search the web for CURRENT Layer 3 (human intelligence) and Layer 4 (sentiment) context on both clubs and this fixture, then produce the JSON.`
 }

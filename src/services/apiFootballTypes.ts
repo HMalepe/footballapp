@@ -73,6 +73,16 @@ export interface ApiInjuryEntry {
   }
 }
 
+export interface ApiOddsEntry {
+  bookmakers?: {
+    bets?: {
+      id?: number
+      name?: string
+      values?: { value?: string; odd?: string }[]
+    }[]
+  }[]
+}
+
 export interface ApiPlayerEntry {
   player?: {
     id?: number

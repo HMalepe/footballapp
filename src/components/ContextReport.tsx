@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveData } from '../hooks/useLiveData'
 import { FeedState } from './FeedState'
-import { fetchInjuries } from '../services/football'
+import { fetchInjuries, fetchNextMeetingId, fetchOdds } from '../services/football'
 import { generateContextReport } from '../services/anthropic'
 import { isAiEnabled } from '../services/config'
 import { computeStakes, stakesAsymmetry } from '../utils/motivation'
-import type { ContextReport as Report, FormGame, Standing } from '../data/types'
+import { impliedProbabilities, oddsMovement } from '../utils/odds'
+import type { OddsMovement as Movement } from '../utils/odds'
+import type { ContextReport as Report, FormGame, Odds, Standing } from '../data/types'
 
 interface ContextReportProps {
   home: Standing
@@ -52,6 +54,34 @@ export function ContextReport({
     `inj-${home.teamId}-${away.teamId}-${season}`,
   )
 
+  // Layer 4 — market odds for the next meeting of these two teams.
+  const oddsFeed = useLiveData<{ fixtureId: number | null; odds: Odds | null }>(
+    async () => {
+      const fixtureId = await fetchNextMeetingId(home.teamId, away.teamId)
+      const odds = fixtureId ? await fetchOdds(fixtureId) : null
+      return { fixtureId, odds }
+    },
+    `odds-${home.teamId}-${away.teamId}`,
+  )
+  const odds = oddsFeed.data?.odds ?? null
+
+  // Track how the price has moved since the user last viewed this fixture.
+  const [movement, setMovement] = useState<Movement | null>(null)
+  useEffect(() => {
+    const d = oddsFeed.data
+    if (!d?.odds || !d.fixtureId) return
+    const key = `odds-snap:${d.fixtureId}`
+    try {
+      const prevRaw = localStorage.getItem(key)
+      if (prevRaw) {
+        setMovement(oddsMovement(JSON.parse(prevRaw) as Odds, d.odds))
+      }
+      localStorage.setItem(key, JSON.stringify(d.odds))
+    } catch {
+      // Ignore storage errors — movement is a nice-to-have.
+    }
+  }, [oddsFeed.data])
+
   // Layers 3-4 + Trap Score — on-demand LLM analysis.
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(false)
@@ -75,6 +105,7 @@ export function ContextReport({
         awayStakes: `${awayStakes.label} — ${awayStakes.note}`,
         homeInjuries: injuriesText(injuries.data?.homeInj),
         awayInjuries: injuriesText(injuries.data?.awayInj),
+        odds: oddsText(odds),
       })
       setReport(result)
     } catch (e) {
@@ -128,6 +159,19 @@ export function ContextReport({
           )}
         </FeedState>
       </div>
+
+      {/* Layer 4 — market odds (only shown when a fixture + prices exist) */}
+      {odds && (
+        <div className="ctx-block" style={{ marginBottom: 12 }}>
+          <span className="ctx-label">Market odds (Layer 4)</span>
+          <OddsBar
+            homeTeam={home.team}
+            awayTeam={away.team}
+            odds={odds}
+            movement={movement}
+          />
+        </div>
+      )}
 
       {/* Layers 3-4 + Trap Score — AI generated */}
       {!isAiEnabled() ? (
@@ -238,6 +282,57 @@ function TrapReport({
       </button>
     </div>
   )
+}
+
+function OddsBar({
+  homeTeam,
+  awayTeam,
+  odds,
+  movement,
+}: {
+  homeTeam: string
+  awayTeam: string
+  odds: Odds
+  movement: Movement | null
+}) {
+  const probs = impliedProbabilities(odds)
+  const cols: {
+    key: 'home' | 'draw' | 'away'
+    label: string
+    price: number
+    prob: number
+  }[] = [
+    { key: 'home', label: homeTeam, price: odds.home, prob: probs.home },
+    { key: 'draw', label: 'Draw', price: odds.draw, prob: probs.draw },
+    { key: 'away', label: awayTeam, price: odds.away, prob: probs.away },
+  ]
+  return (
+    <div className="odds-bar">
+      {cols.map((c) => {
+        const dir = movement?.[c.key]
+        return (
+          <div key={c.key} className="odds-cell">
+            <span className="odds-label">{c.label}</span>
+            <span className="odds-price">
+              {c.price.toFixed(2)}
+              {dir && dir !== 'same' && (
+                <span className={`odds-move odds-${dir}`}>
+                  {dir === 'shortened' ? '▼' : '▲'}
+                </span>
+              )}
+            </span>
+            <span className="odds-prob">{c.prob}%</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function oddsText(odds: Odds | null): string {
+  if (!odds) return 'Not available'
+  const p = impliedProbabilities(odds)
+  return `1X2 ${odds.home.toFixed(2)} / ${odds.draw.toFixed(2)} / ${odds.away.toFixed(2)} (implied ${p.home}% / ${p.draw}% / ${p.away}%)`
 }
 
 function hostOf(url: string): string {

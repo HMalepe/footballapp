@@ -2,6 +2,7 @@ import { apiFootball, apiFootballObject, apiFootballPaged } from './apiFootball'
 import type {
   ApiFixtureEntry,
   ApiInjuryEntry,
+  ApiOddsEntry,
   ApiPlayerEntry,
   ApiStandingEntry,
   ApiStandingsResponse,
@@ -13,6 +14,7 @@ import type {
   FormResult,
   Injury,
   Match,
+  Odds,
   Player,
   PlayerPosition,
   Scope,
@@ -216,6 +218,35 @@ export async function fetchInjuries(
     player: i.player?.name ?? 'Unknown',
     reason: i.player?.reason ?? 'Unavailable',
   }))
+}
+
+// ── Odds (Layer 4) ──────────────────────────────────────────────────
+// The id of the next scheduled meeting between the two teams (for odds).
+export async function fetchNextMeetingId(
+  homeId: number,
+  awayId: number,
+): Promise<number | null> {
+  const res = await apiFootball<ApiFixtureEntry>('fixtures/headtohead', {
+    h2h: `${homeId}-${awayId}`,
+    next: 1,
+  })
+  return res[0]?.fixture?.id ?? null
+}
+
+// Market 1X2 (Match Winner, bet id 1) decimal odds from the first bookmaker.
+export async function fetchOdds(fixtureId: number): Promise<Odds | null> {
+  const res = await apiFootball<ApiOddsEntry>('odds', { fixture: fixtureId, bet: 1 })
+  const values = res[0]?.bookmakers?.[0]?.bets?.[0]?.values
+  if (!values) return null
+  const odd = (name: string): number => {
+    const v = values.find((x) => x.value === name)
+    return v?.odd ? Number(v.odd) : NaN
+  }
+  const home = odd('Home')
+  const draw = odd('Draw')
+  const away = odd('Away')
+  if (![home, draw, away].every((n) => Number.isFinite(n) && n > 0)) return null
+  return { home, draw, away }
 }
 
 // ── Squad / player stats ────────────────────────────────────────────

@@ -16,6 +16,7 @@ import {
   fetchForm,
   fetchHeadToHead,
   fetchInjuries,
+  fetchOdds,
 } from './football'
 
 const scope: Scope = { league: 39, season: 2025, team: 42 }
@@ -178,6 +179,36 @@ describe('fetchInjuries', () => {
     const out = await fetchInjuries(42, 2025)
     expect(out).toHaveLength(6)
     expect(out[0]).toEqual({ player: 'Player 0', reason: 'Knock' })
+  })
+})
+
+describe('fetchOdds', () => {
+  it('extracts 1X2 decimal odds from the first bookmaker', async () => {
+    vi.mocked(apiFootball).mockResolvedValue([
+      {
+        bookmakers: [
+          {
+            bets: [
+              {
+                id: 1,
+                name: 'Match Winner',
+                values: [
+                  { value: 'Home', odd: '1.80' },
+                  { value: 'Draw', odd: '3.60' },
+                  { value: 'Away', odd: '4.50' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ] as never)
+    expect(await fetchOdds(700)).toEqual({ home: 1.8, draw: 3.6, away: 4.5 })
+  })
+
+  it('returns null when odds are missing', async () => {
+    vi.mocked(apiFootball).mockResolvedValue([] as never)
+    expect(await fetchOdds(700)).toBeNull()
   })
 })
 

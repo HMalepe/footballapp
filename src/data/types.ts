@@ -91,6 +91,13 @@ export interface Stakes {
   note: string
 }
 
+// Layer 4 — market 1X2 (match winner) decimal odds.
+export interface Odds {
+  home: number
+  draw: number
+  away: number
+}
+
 // Layers 3–4 + Trap Score — produced by the LLM analysis layer. This is
 // context/education only: it estimates how much hidden context a casual
 // reader is likely missing. It is NOT a prediction or betting advice.
