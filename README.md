@@ -46,14 +46,22 @@ Open [http://localhost:5173](http://localhost:5173) in your browser after runnin
 
 ## Live Data (required for real content)
 
-All data is pulled live from
-[API-Football](https://rapidapi.com/api-sports/api/api-football) — there is no
-bundled sample data. Add a key (free tier available) to see real content:
+All data is pulled live from [API-Football](https://www.api-football.com) —
+there is no bundled sample data. Add a key (free tier available) to see real
+content:
 
 ```bash
 cp .env.example .env.local
 # then edit .env.local and set VITE_API_FOOTBALL_KEY
 ```
+
+Get a key either way (same data, same endpoints):
+
+- **Direct** — sign up at [api-football.com](https://www.api-football.com),
+  the key is on your dashboard. Set `VITE_API_FOOTBALL_PROVIDER=direct`.
+- **RapidAPI** — subscribe at
+  [rapidapi.com/api-sports/api/api-football](https://rapidapi.com/api-sports/api/api-football).
+  Leave `VITE_API_FOOTBALL_PROVIDER` unset (this is the default).
 
 Configure which league / team / season the feeds target with
 `VITE_API_FOOTBALL_LEAGUE`, `VITE_API_FOOTBALL_TEAM`, and

@@ -33,10 +33,12 @@ async function request<T>(path: string, params: Params): Promise<ApiBody<T>> {
     let res: Response
     try {
       res = await fetch(url, {
-        headers: {
-          'x-rapidapi-key': apiConfig.key,
-          'x-rapidapi-host': apiConfig.host,
-        },
+        headers: apiConfig.direct
+          ? { 'x-apisports-key': apiConfig.key }
+          : {
+              'x-rapidapi-key': apiConfig.key,
+              'x-rapidapi-host': apiConfig.host,
+            },
       })
     } catch (e) {
       throw new ApiFootballError(
