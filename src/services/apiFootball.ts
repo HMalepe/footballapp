@@ -1,5 +1,6 @@
 import { apiConfig, isLiveEnabled } from './config'
 import { cached } from './cache'
+import { throttle } from './rateLimiter'
 
 type Params = Record<string, string | number>
 
@@ -30,6 +31,7 @@ async function request<T>(path: string, params: Params): Promise<ApiBody<T>> {
 
   // Cache keyed by URL — repeat/duplicate requests are served without a call.
   return cached<ApiBody<T>>(url, apiConfig.cacheTtlMs, async () => {
+    await throttle()
     let res: Response
     try {
       res = await fetch(url, {
