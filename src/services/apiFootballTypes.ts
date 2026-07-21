@@ -28,17 +28,22 @@ export interface ApiFixtureEntry {
   goals?: ApiGoals
 }
 
+interface ApiRecord {
+  played?: number
+  win?: number
+  draw?: number
+  lose?: number
+  goals?: { for?: number; against?: number }
+}
+
 export interface ApiStandingEntry {
   rank?: number
   team?: ApiTeamRef
   points?: number
   goalsDiff?: number
-  all?: {
-    played?: number
-    win?: number
-    draw?: number
-    lose?: number
-  }
+  all?: ApiRecord
+  home?: ApiRecord
+  away?: ApiRecord
 }
 
 export interface ApiStandingsResponse {
@@ -59,6 +64,23 @@ export interface ApiTeamStatistics {
     against?: { total?: { total?: number } }
   }
   clean_sheet?: { total?: number }
+}
+
+export interface ApiInjuryEntry {
+  player?: {
+    name?: string
+    reason?: string
+  }
+}
+
+export interface ApiOddsEntry {
+  bookmakers?: {
+    bets?: {
+      id?: number
+      name?: string
+      values?: { value?: string; odd?: string }[]
+    }[]
+  }[]
 }
 
 export interface ApiPlayerEntry {

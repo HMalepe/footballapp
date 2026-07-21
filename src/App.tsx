@@ -23,6 +23,7 @@ import {
   fetchPlayers,
   fetchUpcomingFixtures,
 } from './services/football'
+import { LEAGUES } from './data/leagues'
 import type { Fixture, Scope } from './data/types'
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
@@ -109,7 +110,6 @@ function App() {
   const fixtures = [...userFixtures, ...(fixturesFeed.data ?? [])].filter(
     (f) => !removedFixtureIds.includes(f.id),
   )
-  const teamNames = (standingsFeed.data ?? []).map((s) => s.team)
 
   const addMatch = (data: Omit<Fixture, 'id'>) => {
     // Timestamp id keeps user matches from colliding with feed ids.
@@ -204,7 +204,11 @@ function App() {
             key={analyzerMatch ? `${analyzerMatch.home}-${analyzerMatch.away}` : 'default'}
             initialHome={analyzerMatch?.home}
             initialAway={analyzerMatch?.away}
-            teams={teamNames}
+            standings={standingsFeed.data ?? []}
+            season={scope.season}
+            leagueName={
+              LEAGUES.find((l) => l.id === scope.league)?.name ?? 'League'
+            }
           />
         )
       case 'players':

@@ -1,6 +1,8 @@
 import { apiFootball, apiFootballObject, apiFootballPaged } from './apiFootball'
 import type {
   ApiFixtureEntry,
+  ApiInjuryEntry,
+  ApiOddsEntry,
   ApiPlayerEntry,
   ApiStandingEntry,
   ApiStandingsResponse,
@@ -8,12 +10,17 @@ import type {
 } from './apiFootballTypes'
 import type {
   Fixture,
+  FormGame,
+  FormResult,
+  Injury,
   Match,
+  Odds,
   Player,
   PlayerPosition,
   Scope,
   Standing,
   Stat,
+  VenueRecord,
 } from '../data/types'
 
 function formatDate(iso?: string): { date: string; time: string } {
@@ -73,6 +80,16 @@ export async function fetchTeamStats({ league, team, season }: Scope): Promise<S
 }
 
 // ── Standings ───────────────────────────────────────────────────────
+function venue(r: ApiStandingEntry['home']): VenueRecord {
+  return {
+    won: r?.win ?? 0,
+    drawn: r?.draw ?? 0,
+    lost: r?.lose ?? 0,
+    goalsFor: r?.goals?.for ?? 0,
+    goalsAgainst: r?.goals?.against ?? 0,
+  }
+}
+
 export async function fetchStandings({ league, season }: Scope): Promise<Standing[]> {
   const res = await apiFootball<ApiStandingsResponse>('standings', {
     league,
@@ -89,7 +106,56 @@ export async function fetchStandings({ league, season }: Scope): Promise<Standin
     lost: s.all?.lose ?? 0,
     gd: s.goalsDiff ?? 0,
     points: s.points ?? 0,
+    home: venue(s.home),
+    away: venue(s.away),
   }))
+}
+
+// ── Head-to-head history ────────────────────────────────────────────
+export async function fetchHeadToHead(
+  homeId: number,
+  awayId: number,
+  count = 6,
+): Promise<Match[]> {
+  const res = await apiFootball<ApiFixtureEntry>('fixtures/headtohead', {
+    h2h: `${homeId}-${awayId}`,
+    last: count,
+  })
+  return res.map((f) => {
+    const { date } = formatDate(f.fixture?.date)
+    return {
+      id: f.fixture?.id ?? 0,
+      homeTeam: f.teams?.home?.name ?? 'TBD',
+      awayTeam: f.teams?.away?.name ?? 'TBD',
+      homeScore: f.goals?.home ?? 0,
+      awayScore: f.goals?.away ?? 0,
+      date,
+      competition: f.league?.name ?? 'Unknown',
+    }
+  })
+}
+
+// ── Recent form (last N results for a team) ─────────────────────────
+export async function fetchForm(
+  teamId: number,
+  season: number,
+  count = 5,
+): Promise<FormGame[]> {
+  const res = await apiFootball<ApiFixtureEntry>('fixtures', {
+    team: teamId,
+    season,
+    last: count,
+  })
+  return res.map((f) => {
+    const isHome = f.teams?.home?.id === teamId
+    const hg = f.goals?.home ?? 0
+    const ag = f.goals?.away ?? 0
+    const gf = isHome ? hg : ag
+    const ga = isHome ? ag : hg
+    const result: FormResult = gf > ga ? 'W' : gf < ga ? 'L' : 'D'
+    const opponent = (isHome ? f.teams?.away?.name : f.teams?.home?.name) ?? 'TBD'
+    return { result, opponent, score: `${gf}-${ga}`, home: isHome }
+  })
 }
 
 // ── Upcoming fixtures ───────────────────────────────────────────────
@@ -137,6 +203,50 @@ export async function fetchRecentResults(
       competition: f.league?.name ?? 'Unknown',
     }
   })
+}
+
+// ── Injuries (Layer 2 context) ──────────────────────────────────────
+export async function fetchInjuries(
+  teamId: number,
+  season: number,
+): Promise<Injury[]> {
+  const res = await apiFootball<ApiInjuryEntry>('injuries', {
+    team: teamId,
+    season,
+  })
+  return res.slice(0, 6).map((i) => ({
+    player: i.player?.name ?? 'Unknown',
+    reason: i.player?.reason ?? 'Unavailable',
+  }))
+}
+
+// ── Odds (Layer 4) ──────────────────────────────────────────────────
+// The id of the next scheduled meeting between the two teams (for odds).
+export async function fetchNextMeetingId(
+  homeId: number,
+  awayId: number,
+): Promise<number | null> {
+  const res = await apiFootball<ApiFixtureEntry>('fixtures/headtohead', {
+    h2h: `${homeId}-${awayId}`,
+    next: 1,
+  })
+  return res[0]?.fixture?.id ?? null
+}
+
+// Market 1X2 (Match Winner, bet id 1) decimal odds from the first bookmaker.
+export async function fetchOdds(fixtureId: number): Promise<Odds | null> {
+  const res = await apiFootball<ApiOddsEntry>('odds', { fixture: fixtureId, bet: 1 })
+  const values = res[0]?.bookmakers?.[0]?.bets?.[0]?.values
+  if (!values) return null
+  const odd = (name: string): number => {
+    const v = values.find((x) => x.value === name)
+    return v?.odd ? Number(v.odd) : NaN
+  }
+  const home = odd('Home')
+  const draw = odd('Draw')
+  const away = odd('Away')
+  if (![home, draw, away].every((n) => Number.isFinite(n) && n > 0)) return null
+  return { home, draw, away }
 }
 
 // ── Squad / player stats ────────────────────────────────────────────

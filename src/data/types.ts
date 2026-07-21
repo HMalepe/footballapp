@@ -17,6 +17,14 @@ export interface Fixture {
   competition: string
 }
 
+export interface VenueRecord {
+  won: number
+  drawn: number
+  lost: number
+  goalsFor: number
+  goalsAgainst: number
+}
+
 export interface Standing {
   rank: number
   team: string
@@ -27,6 +35,17 @@ export interface Standing {
   lost: number
   gd: number
   points: number
+  home: VenueRecord
+  away: VenueRecord
+}
+
+export type FormResult = 'W' | 'D' | 'L'
+
+export interface FormGame {
+  result: FormResult
+  opponent: string
+  score: string
+  home: boolean
 }
 
 export interface Match {
@@ -57,4 +76,41 @@ export interface Scope {
   league: number
   season: number
   team: number
+}
+
+// ── Deeper context (Layers 2–4 of the Context Layer framework) ──────
+
+export interface Injury {
+  player: string
+  reason: string
+}
+
+// Layer 2 — motivation / match importance, derived from league position.
+export interface Stakes {
+  label: string
+  note: string
+}
+
+// Layer 4 — market 1X2 (match winner) decimal odds.
+export interface Odds {
+  home: number
+  draw: number
+  away: number
+}
+
+// Layers 3–4 + Trap Score — produced by the LLM analysis layer. This is
+// context/education only: it estimates how much hidden context a casual
+// reader is likely missing. It is NOT a prediction or betting advice.
+export interface ReportSource {
+  title: string
+  url: string
+}
+
+export interface ContextReport {
+  trapScore: number // 1–10
+  classification: string
+  humanIntel: string[] // Layer 3
+  sentiment: string[] // Layer 4
+  explanation: string
+  sources: ReportSource[] // web-search citations that grounded the analysis
 }
