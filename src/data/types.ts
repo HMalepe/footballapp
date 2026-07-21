@@ -80,11 +80,6 @@ export interface Scope {
 
 // ── Deeper context (Layers 2–4 of the Context Layer framework) ──────
 
-export interface Injury {
-  player: string
-  reason: string
-}
-
 // Layer 2 — motivation / match importance, derived from league position.
 export interface Stakes {
   label: string
@@ -98,9 +93,10 @@ export interface Odds {
   away: number
 }
 
-// Layers 3–4 + Trap Score — produced by the LLM analysis layer. This is
-// context/education only: it estimates how much hidden context a casual
-// reader is likely missing. It is NOT a prediction or betting advice.
+// Layers 2–4 + Trap Score — produced by the LLM analysis layer (web-search
+// grounded). This is context/education only: it estimates how much hidden
+// context a casual reader is likely missing. It is NOT a prediction or
+// betting advice.
 export interface ReportSource {
   title: string
   url: string
@@ -109,6 +105,8 @@ export interface ReportSource {
 export interface ContextReport {
   trapScore: number // 1–10
   classification: string
+  homeInjuries: string[] // Layer 2
+  awayInjuries: string[] // Layer 2
   humanIntel: string[] // Layer 3
   sentiment: string[] // Layer 4
   explanation: string

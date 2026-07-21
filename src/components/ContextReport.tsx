@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLiveData } from '../hooks/useLiveData'
-import { FeedState } from './FeedState'
-import { fetchInjuries, fetchNextMeetingId, fetchOdds } from '../services/football'
+import { fetchNextMeetingId, fetchOdds } from '../services/football'
 import { generateContextReport } from '../services/anthropic'
 import { isAiEnabled } from '../services/config'
 import { computeStakes, stakesAsymmetry } from '../utils/motivation'
@@ -43,16 +42,6 @@ export function ContextReport({
 }: ContextReportProps) {
   const homeStakes = computeStakes(home.rank, leagueSize)
   const awayStakes = computeStakes(away.rank, leagueSize)
-
-  // Layer 2 — injuries (real, live).
-  const injuries = useLiveData(
-    () =>
-      Promise.all([
-        fetchInjuries(home.teamId, season),
-        fetchInjuries(away.teamId, season),
-      ]).then(([homeInj, awayInj]) => ({ homeInj, awayInj })),
-    `inj-${home.teamId}-${away.teamId}-${season}`,
-  )
 
   // Layer 4 — market odds for the next meeting of these two teams.
   const oddsFeed = useLiveData<{ fixtureId: number | null; odds: Odds | null }>(
@@ -103,8 +92,6 @@ export function ContextReport({
         h2hSummary,
         homeStakes: `${homeStakes.label} — ${homeStakes.note}`,
         awayStakes: `${awayStakes.label} — ${awayStakes.note}`,
-        homeInjuries: injuriesText(injuries.data?.homeInj),
-        awayInjuries: injuriesText(injuries.data?.awayInj),
         odds: oddsText(odds),
       })
       setReport(result)
@@ -136,30 +123,6 @@ export function ContextReport({
         <span className="ctx-muted">{stakesAsymmetry(homeStakes, awayStakes)}</span>
       </div>
 
-      {/* Layer 2 — injuries */}
-      <div className="ctx-block" style={{ marginBottom: 12 }}>
-        <span className="ctx-label">Reported injuries (Layer 2)</span>
-        <FeedState
-          configured={injuries.configured}
-          loading={injuries.loading}
-          error={injuries.error}
-          empty={!injuries.data}
-        >
-          {injuries.data && (
-            <>
-              <div className="ctx-row">
-                <span className="ctx-team ctx-team-home">{home.team}</span>
-                <span className="ctx-record">{injuriesText(injuries.data.homeInj)}</span>
-              </div>
-              <div className="ctx-row">
-                <span className="ctx-team ctx-team-away">{away.team}</span>
-                <span className="ctx-record">{injuriesText(injuries.data.awayInj)}</span>
-              </div>
-            </>
-          )}
-        </FeedState>
-      </div>
-
       {/* Layer 4 — market odds (only shown when a fixture + prices exist) */}
       {odds && (
         <div className="ctx-block" style={{ marginBottom: 12 }}>
@@ -177,10 +140,17 @@ export function ContextReport({
       {!isAiEnabled() ? (
         <div className="ai-hint">
           🔌 Add a Claude API key (<code>VITE_ANTHROPIC_KEY</code>) to research the
-          web for the human-intelligence and sentiment layers plus a Trap Score.
+          web for reported injuries, human intelligence, and sentiment, plus a
+          Trap Score.
         </div>
       ) : report ? (
-        <TrapReport report={report} onRegenerate={generate} loading={loading} />
+        <TrapReport
+          report={report}
+          homeTeam={home.team}
+          awayTeam={away.team}
+          onRegenerate={generate}
+          loading={loading}
+        />
       ) : (
         <div className="ai-generate">
           <button
@@ -212,10 +182,14 @@ export function ContextReport({
 
 function TrapReport({
   report,
+  homeTeam,
+  awayTeam,
   onRegenerate,
   loading,
 }: {
   report: Report
+  homeTeam: string
+  awayTeam: string
   onRegenerate: () => void
   loading: boolean
 }) {
@@ -230,6 +204,36 @@ function TrapReport({
       </div>
 
       <p className="trap-explanation">{report.explanation}</p>
+
+      {(report.homeInjuries.length > 0 || report.awayInjuries.length > 0) && (
+        <div className="ctx-block" style={{ marginBottom: 12 }}>
+          <span className="ctx-label">Reported injuries (Layer 2)</span>
+          {report.homeInjuries.length > 0 && (
+            <div className="ctx-row">
+              <span className="ctx-team ctx-team-home">{homeTeam}</span>
+            </div>
+          )}
+          {report.homeInjuries.length > 0 && (
+            <ul className="trap-list">
+              {report.homeInjuries.map((b, i) => (
+                <li key={i}>{b}</li>
+              ))}
+            </ul>
+          )}
+          {report.awayInjuries.length > 0 && (
+            <div className="ctx-row">
+              <span className="ctx-team ctx-team-away">{awayTeam}</span>
+            </div>
+          )}
+          {report.awayInjuries.length > 0 && (
+            <ul className="trap-list">
+              {report.awayInjuries.map((b, i) => (
+                <li key={i}>{b}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {report.humanIntel.length > 0 && (
         <div className="ctx-block" style={{ marginBottom: 12 }}>
@@ -347,9 +351,4 @@ function ordinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd']
   const v = n % 100
   return s[(v - 20) % 10] || s[v] || s[0]
-}
-
-function injuriesText(list?: { player: string; reason: string }[]): string {
-  if (!list || list.length === 0) return 'None reported'
-  return list.map((i) => `${i.player} (${i.reason})`).join(', ')
 }

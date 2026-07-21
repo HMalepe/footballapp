@@ -1,7 +1,6 @@
 import { apiFootball, apiFootballObject, apiFootballPaged } from './apiFootball'
 import type {
   ApiFixtureEntry,
-  ApiInjuryEntry,
   ApiOddsEntry,
   ApiPlayerEntry,
   ApiStandingEntry,
@@ -12,7 +11,6 @@ import type {
   Fixture,
   FormGame,
   FormResult,
-  Injury,
   Match,
   Odds,
   Player,
@@ -213,21 +211,6 @@ export async function fetchRecentResults(
       competition: f.league?.name ?? 'Unknown',
     }
   })
-}
-
-// ── Injuries (Layer 2 context) ──────────────────────────────────────
-export async function fetchInjuries(
-  teamId: number,
-  season: number,
-): Promise<Injury[]> {
-  const res = await apiFootball<ApiInjuryEntry>('injuries', {
-    team: teamId,
-    season,
-  })
-  return res.slice(0, 6).map((i) => ({
-    player: i.player?.name ?? 'Unknown',
-    reason: i.player?.reason ?? 'Unavailable',
-  }))
 }
 
 // ── Odds (Layer 4) ──────────────────────────────────────────────────

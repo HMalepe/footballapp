@@ -15,17 +15,15 @@ export interface ContextInput {
   h2hSummary: string
   homeStakes: string
   awayStakes: string
-  homeInjuries: string
-  awayInjuries: string
   odds: string
 }
 
 // The product's non-negotiable positioning: context/education, never a tip.
 const SYSTEM_PROMPT = `You are "The Context Layer" — a football match context analyst.
 
-Your job is to surface the hidden context a casual observer is likely missing about a fixture: rotation risk, motivation asymmetry, morale, contract situations, manager pressure, fan/media sentiment, and narrative traps. You quantify how much non-obvious context exists via a "Trap Score" (1-10).
+Your job is to surface the hidden context a casual observer is likely missing about a fixture: injuries/suspensions, rotation risk, motivation asymmetry, morale, contract situations, manager pressure, fan/media sentiment, and narrative traps. You quantify how much non-obvious context exists via a "Trap Score" (1-10).
 
-You have a web_search tool. USE IT. Run several targeted searches for CURRENT information about this specific fixture and the two clubs: latest team news and injuries, manager pressure and job security, dressing-room morale, contract/transfer sagas, fan and pundit sentiment, and the narrative going into the game. Prefer credible, recent sources (established journalists, club-beat reporters, reputable outlets). Ground every Layer 3/4 claim in what you find; if you cannot verify something, say so or omit it.
+You have a web_search tool. USE IT. Run several targeted searches for CURRENT information about this specific fixture and the two clubs: confirmed injuries and suspensions for both squads (Layer 2), latest team news, manager pressure and job security, dressing-room morale, contract/transfer sagas (Layer 3), and fan and pundit sentiment and the narrative going into the game (Layer 4). Prefer credible, recent sources (established journalists, club-beat reporters, reputable outlets, official club news). Ground every claim in what you find; if you cannot verify something, say so or omit it. If no injuries are being reported for a team, say so explicitly rather than leaving it blank.
 
 HARD RULES (never break these):
 - You are NOT a tipster. Never say "bet this", never name a bet or market, never tell the reader what to do.
@@ -36,7 +34,7 @@ HARD RULES (never break these):
 Trap Score bands: 1-3 Low Context Risk, 4-6 Moderate Context Risk, 7-8 High Context Risk, 9-10 Trap Flag.
 
 When your research is done, respond with ONLY a single JSON object and nothing else (no markdown, no prose around it):
-{"trapScore": <int 1-10>, "classification": "<band>", "humanIntel": ["<Layer 3 bullet>", ...], "sentiment": ["<Layer 4 bullet>", ...], "explanation": "<2-4 sentences, never a bet>"}`
+{"trapScore": <int 1-10>, "classification": "<band>", "homeInjuries": ["<Layer 2 bullet: player + status>", ...], "awayInjuries": ["<Layer 2 bullet: player + status>", ...], "humanIntel": ["<Layer 3 bullet>", ...], "sentiment": ["<Layer 4 bullet>", ...], "explanation": "<2-4 sentences, never a bet>"}`
 
 export class AiError extends Error {
   constructor(message: string) {
@@ -59,11 +57,9 @@ ${c.away} recent form: ${c.awayForm}
 Head-to-head: ${c.h2hSummary}
 ${c.home} stakes: ${c.homeStakes}
 ${c.away} stakes: ${c.awayStakes}
-${c.home} injuries (from data feed): ${c.homeInjuries}
-${c.away} injuries (from data feed): ${c.awayInjuries}
 Market odds: ${c.odds}
 
-Search the web for CURRENT Layer 3 (human intelligence) and Layer 4 (sentiment) context on both clubs and this fixture, then produce the JSON.`
+Search the web for CURRENT injuries/suspensions for both squads (Layer 2), plus human intelligence (Layer 3) and sentiment (Layer 4) context on both clubs and this fixture, then produce the JSON.`
 }
 
 interface ContentBlock {
@@ -168,6 +164,8 @@ export async function generateContextReport(
   return {
     trapScore: score,
     classification: parsed.classification ?? 'Moderate Context Risk',
+    homeInjuries: Array.isArray(parsed.homeInjuries) ? parsed.homeInjuries : [],
+    awayInjuries: Array.isArray(parsed.awayInjuries) ? parsed.awayInjuries : [],
     humanIntel: Array.isArray(parsed.humanIntel) ? parsed.humanIntel : [],
     sentiment: Array.isArray(parsed.sentiment) ? parsed.sentiment : [],
     explanation: parsed.explanation ?? '',
