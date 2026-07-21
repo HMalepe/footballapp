@@ -126,18 +126,27 @@ describe('fetchForm', () => {
     vi.mocked(apiFootball).mockResolvedValue([
       // team 42 at home, won 2-1
       {
+        fixture: { date: '2025-03-01T00:00:00+00:00', status: { short: 'FT' } },
         teams: { home: { id: 42, name: 'Arsenal' }, away: { id: 5, name: 'Spurs' } },
         goals: { home: 2, away: 1 },
       },
       // team 42 away, lost 0-3 (they are the away side)
       {
+        fixture: { date: '2025-02-01T00:00:00+00:00', status: { short: 'FT' } },
         teams: { home: { id: 9, name: 'City' }, away: { id: 42, name: 'Arsenal' } },
         goals: { home: 3, away: 0 },
       },
       // draw
       {
+        fixture: { date: '2025-01-01T00:00:00+00:00', status: { short: 'FT' } },
         teams: { home: { id: 42, name: 'Arsenal' }, away: { id: 7, name: 'Chelsea' } },
         goals: { home: 1, away: 1 },
+      },
+      // not yet played — should be excluded from form
+      {
+        fixture: { date: '2025-04-01T00:00:00+00:00', status: { short: 'NS' } },
+        teams: { home: { id: 42, name: 'Arsenal' }, away: { id: 3, name: 'Wolves' } },
+        goals: { home: null, away: null },
       },
     ] as never)
 
@@ -149,13 +158,19 @@ describe('fetchForm', () => {
 })
 
 describe('fetchHeadToHead', () => {
-  it('maps h2h fixtures into matches', async () => {
+  it('maps h2h fixtures into matches, most recent finished match first', async () => {
     vi.mocked(apiFootball).mockResolvedValue([
       {
-        fixture: { id: 5, date: '2025-03-01T00:00:00+00:00' },
+        fixture: { id: 5, date: '2025-03-01T00:00:00+00:00', status: { short: 'FT' } },
         league: { name: 'Premier League' },
         teams: { home: { name: 'Arsenal' }, away: { name: 'Chelsea' } },
         goals: { home: 3, away: 0 },
+      },
+      {
+        fixture: { id: 6, date: '2025-06-01T00:00:00+00:00', status: { short: 'NS' } },
+        league: { name: 'Premier League' },
+        teams: { home: { name: 'Chelsea' }, away: { name: 'Arsenal' } },
+        goals: { home: null, away: null },
       },
     ] as never)
 
@@ -164,7 +179,6 @@ describe('fetchHeadToHead', () => {
     expect(m.homeScore).toBe(3)
     expect(apiFootball).toHaveBeenCalledWith('fixtures/headtohead', {
       h2h: '42-7',
-      last: 6,
     })
   })
 })
@@ -216,7 +230,7 @@ describe('fetchRecentResults', () => {
   it('maps goals into scores', async () => {
     vi.mocked(apiFootball).mockResolvedValue([
       {
-        fixture: { id: 900, date: '2026-05-01T14:00:00+00:00' },
+        fixture: { id: 900, date: '2026-05-01T14:00:00+00:00', status: { short: 'FT' } },
         league: { name: 'Premier League' },
         teams: { home: { name: 'Arsenal' }, away: { name: 'Everton' } },
         goals: { home: 2, away: 1 },
