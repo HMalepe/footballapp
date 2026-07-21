@@ -16,6 +16,7 @@ export interface ApiFixtureEntry {
   fixture?: {
     id?: number
     date?: string
+    status?: { short?: string }
   }
   league?: {
     id?: number

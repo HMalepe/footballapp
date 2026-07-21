@@ -33,6 +33,19 @@ function formatDate(iso?: string): { date: string; time: string } {
   }
 }
 
+// API-Football's `last` query param is a paid-plan-only convenience for
+// "give me the last N fixtures". The free plan rejects it outright, so
+// instead we fetch the unfiltered set and take the most recent finished
+// matches ourselves.
+const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN'])
+
+function mostRecentFinished<T extends ApiFixtureEntry>(entries: T[], count: number): T[] {
+  return entries
+    .filter((e) => FINISHED_STATUSES.has(e.fixture?.status?.short ?? ''))
+    .sort((a, b) => (b.fixture?.date ?? '').localeCompare(a.fixture?.date ?? ''))
+    .slice(0, count)
+}
+
 function mapPosition(raw?: string | null): PlayerPosition {
   switch ((raw ?? '').toLowerCase()) {
     case 'goalkeeper':
@@ -119,9 +132,8 @@ export async function fetchHeadToHead(
 ): Promise<Match[]> {
   const res = await apiFootball<ApiFixtureEntry>('fixtures/headtohead', {
     h2h: `${homeId}-${awayId}`,
-    last: count,
   })
-  return res.map((f) => {
+  return mostRecentFinished(res, count).map((f) => {
     const { date } = formatDate(f.fixture?.date)
     return {
       id: f.fixture?.id ?? 0,
@@ -144,9 +156,8 @@ export async function fetchForm(
   const res = await apiFootball<ApiFixtureEntry>('fixtures', {
     team: teamId,
     season,
-    last: count,
   })
-  return res.map((f) => {
+  return mostRecentFinished(res, count).map((f) => {
     const isHome = f.teams?.home?.id === teamId
     const hg = f.goals?.home ?? 0
     const ag = f.goals?.away ?? 0
@@ -189,9 +200,8 @@ export async function fetchRecentResults(
   const res = await apiFootball<ApiFixtureEntry>('fixtures', {
     league,
     season,
-    last: count,
   })
-  return res.map((f) => {
+  return mostRecentFinished(res, count).map((f) => {
     const { date } = formatDate(f.fixture?.date)
     return {
       id: f.fixture?.id ?? 0,
